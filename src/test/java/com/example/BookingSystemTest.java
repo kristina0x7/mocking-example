@@ -2,14 +2,18 @@ package com.example;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,5 +47,16 @@ class BookingSystemTest {
     void setUp() {
         room = new Room(ROOM_ID, ROOM_NAME);
         when(timeProvider.getCurrentTime()).thenReturn(CURRENT_TIME);
+    }
+
+    @Test
+    @DisplayName("Skapa bokning med korrekta parametrar - ska spara och returnera true")
+    void bookRoom_WithValidParameters_ReturnsTrueAndSavesRoom() {
+        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
+
+        boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+
+        assertThat(result).isTrue();
+        verify(roomRepository).save(room);
     }
 }
