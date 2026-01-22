@@ -62,13 +62,20 @@ class BookingSystemTest {
     }
 
     @Test
-    @DisplayName("När starttiden är i dåtid - kasta IllegalArgumentException")
+    @DisplayName("När starttid är i dåtid - kasta IllegalArgumentException")
     void bookRoom_withPastStartTime_ThrowsException() {
-        when(timeProvider.getCurrentTime()).thenReturn(CURRENT_TIME);
-
         assertThatThrownBy(() ->
                 bookingSystem.bookRoom(ROOM_ID, PAST_TIME, FUTURE_END_TIME))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Kan inte boka tid i dåtid");
+    }
+
+    @Test
+    @DisplayName("När sluttid är före start tid - kasta IllegalArgumentException")
+    void bookRoom_WithEndTimeBeforeStartTime_ThrowsException() {
+        assertThatThrownBy(() ->
+                bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, PAST_TIME))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Sluttid måste vara efter starttid");
     }
 }
