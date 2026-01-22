@@ -78,4 +78,15 @@ class BookingSystemTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Sluttid måste vara efter starttid");
     }
+
+    @Test
+    @DisplayName("När rummet inte finns - kasta IllegalArgumentException")
+    void bookRoom_WhenRoomNotFound_ThrowsException() {
+        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Rummet existerar inte");
+    }
 }
