@@ -176,4 +176,17 @@ class BookingSystemTest {
         assertThat(result).isTrue();
         verify(roomRepository).save(room);
     }
+
+    @Test
+    @DisplayName("Lyckad bokning lägger till booking i rummet")
+    void bookRoom_Successful_AddsBookingToRoom() throws NotificationException {
+        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
+
+        boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+
+        assertThat(result).isTrue();
+
+        verify(roomRepository).save(room);
+        verify(notificationService).sendBookingConfirmation(any(Booking.class));
+    }
 }
