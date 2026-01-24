@@ -17,8 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -137,7 +136,22 @@ class BookingSystemTest {
         boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
         assertThat(result).isFalse();
-
         verify(roomRepository, never()).save(any(Room.class));
+    }
+
+    @Test
+    @DisplayName("Bokning lyckas även om notifikation kastar NotificationException")
+    void bookRoom_WhenNotificationThrowsNotificationException_StillReturnsTrue() throws NotificationException {
+        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
+
+        doThrow(new NotificationException("Error"))
+                .when(notificationService)
+                .sendBookingConfirmation(any(Booking.class));
+
+        boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+
+        assertThat(result).isTrue();
+        verify(roomRepository).save(room);
+        verify(notificationService).sendBookingConfirmation(any(Booking.class));
     }
 }
