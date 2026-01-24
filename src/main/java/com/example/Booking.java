@@ -16,7 +16,7 @@ public class Booking {
     }
 
     public boolean overlaps(LocalDateTime start, LocalDateTime end) {
-        return !endTime.isBefore(start) && !startTime.isAfter(end);
+        return start.isBefore(endTime) && end.isAfter(startTime);
     }
 
     public String getId() {
