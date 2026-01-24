@@ -189,4 +189,13 @@ class BookingSystemTest {
         verify(roomRepository).save(room);
         verify(notificationService).sendBookingConfirmation(any(Booking.class));
     }
+
+    @Test
+    @DisplayName("Validering sker i rätt ordning - null check först")
+    void bookRoom_ValidationOrder_NullCheckBeforeTimeCheck() {
+        assertThatThrownBy(() ->
+                bookingSystem.bookRoom(null, PAST_TIME, FUTURE_END_TIME))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Bokning kräver giltiga start- och sluttider samt rum-id");
+    }
 }
