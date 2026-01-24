@@ -9,6 +9,15 @@ public class Booking {
     private final LocalDateTime endTime;
 
     public Booking(String id, String roomId, LocalDateTime startTime, LocalDateTime endTime) {
+
+        if (id == null || roomId == null || startTime == null || endTime == null) {
+            throw new IllegalArgumentException("Inga parametrar får vara null");
+        }
+
+        if (endTime.isBefore(startTime) || endTime.isEqual(startTime)) {
+            throw new IllegalArgumentException("Sluttid måste vara efter starttid");
+        }
+
         this.id = id;
         this.roomId = roomId;
         this.startTime = startTime;
