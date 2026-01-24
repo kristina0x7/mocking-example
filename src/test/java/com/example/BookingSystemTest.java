@@ -220,4 +220,16 @@ class BookingSystemTest {
 
         assertThat(result).isTrue();
     }
+
+    @Test
+    @DisplayName("Bokning som börjar 1 nanosekund i dåtid - kastar exception (ha-ha)")
+    void bookRoom_OneNanosecondInPast_ThrowsException() {
+        LocalDateTime oneNanosecondPast = CURRENT_TIME.minusNanos(1);
+        LocalDateTime future = CURRENT_TIME.plusHours(1);
+
+        assertThatThrownBy(() ->
+                bookingSystem.bookRoom(ROOM_ID, oneNanosecondPast, future))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Kan inte boka tid i dåtid");
+    }
 }
