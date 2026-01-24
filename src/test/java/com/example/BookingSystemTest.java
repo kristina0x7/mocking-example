@@ -209,4 +209,15 @@ class BookingSystemTest {
         verify(notificationService).sendBookingConfirmation(any(Booking.class));
         verify(roomRepository).save(room);
     }
+
+    @Test
+    @DisplayName("Bokning med starttid exakt nu - ska fungera")
+    void bookRoom_WithStartTimeEqualToCurrentTime_ReturnsTrue() {
+        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
+        when(timeProvider.getCurrentTime()).thenReturn(FUTURE_START_TIME);
+
+        boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+
+        assertThat(result).isTrue();
+    }
 }
