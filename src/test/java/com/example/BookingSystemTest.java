@@ -263,4 +263,12 @@ class BookingSystemTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Måste ange både start- och sluttid");
     }
+
+    @Test
+    @DisplayName("getAvailableRooms med null sluttid - kastar exception")
+    void getAvailableRooms_WithNullEndTime_ThrowsException() {
+        assertThatThrownBy(() -> bookingSystem.getAvailableRooms(FUTURE_START_TIME, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Måste ange både start- och sluttid");
+    }
 }
