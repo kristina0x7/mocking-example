@@ -4,16 +4,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +51,34 @@ class BookingSystemTest {
     @DisplayName("Förbered testdata och mock-inställningar")
     void setUp() {
         room = new Room(ROOM_ID, ROOM_NAME);
-        when(timeProvider.getCurrentTime()).thenReturn(CURRENT_TIME);
+        Mockito.lenient().when(timeProvider.getCurrentTime()).thenReturn(CURRENT_TIME);
+    }
+
+    @ParameterizedTest
+    @MethodSource("nullParameterTestCases")
+    @DisplayName("När någon parameter är null - kasta IllegalArgumentException")
+    void bookRoom_WithAnyNullParameter_ThrowsException(
+            String roomId, LocalDateTime startTime, LocalDateTime endTime) {
+
+        assertThatThrownBy(() ->
+                bookingSystem.bookRoom(roomId, startTime, endTime))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Bokning kräver giltiga start- och sluttider samt rum-id");
+    }
+
+    private static Stream<Arguments> nullParameterTestCases() {
+        LocalDateTime startTime = LocalDateTime.of(2026, 1, 7, 10, 0);
+        LocalDateTime endTime = LocalDateTime.of(2026, 1, 7, 11, 0);
+
+        return Stream.of(
+                Arguments.of(null, startTime, endTime),
+                Arguments.of("room1", null, endTime),
+                Arguments.of("room1", startTime, null),
+                Arguments.of(null, null, endTime),
+                Arguments.of(null, startTime, null),
+                Arguments.of("room1", null, null),
+                Arguments.of(null, null, null)
+        );
     }
 
     @Test
