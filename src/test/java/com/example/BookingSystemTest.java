@@ -165,4 +165,15 @@ class BookingSystemTest {
         verify(roomRepository).save(room);
         verify(notificationService).sendBookingConfirmation(any(Booking.class));
     }
+
+    @Test
+    @DisplayName("Lyckad bokning sparar rummet i repository")
+    void bookRoom_Successful_SavesRoomToRepository() {
+        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
+
+        boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+
+        assertThat(result).isTrue();
+        verify(roomRepository).save(room);
+    }
 }
