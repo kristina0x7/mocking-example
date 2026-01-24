@@ -255,4 +255,12 @@ class BookingSystemTest {
 
         assertThat(result).isTrue();
     }
+
+    @Test
+    @DisplayName("getAvailableRooms med null starttid - kastar exception")
+    void getAvailableRooms_WithNullStartTime_ThrowsException() {
+        assertThatThrownBy(() -> bookingSystem.getAvailableRooms(null, FUTURE_END_TIME))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Måste ange både start- och sluttid");
+    }
 }
