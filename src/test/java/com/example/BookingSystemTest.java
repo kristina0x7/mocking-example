@@ -14,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -33,6 +32,7 @@ class BookingSystemTest {
     private static final LocalDateTime FUTURE_START_TIME = CURRENT_TIME.plusHours(1);
     private static final LocalDateTime FUTURE_END_TIME = CURRENT_TIME.plusHours(2);
     private static final LocalDateTime PAST_TIME = CURRENT_TIME.minusHours(1);
+
 
     @Mock
     TimeProvider timeProvider;
@@ -57,29 +57,49 @@ class BookingSystemTest {
     }
 
     @ParameterizedTest
-    @MethodSource("nullParameterTestCases")
-    @DisplayName("När någon parameter är null - kasta IllegalArgumentException")
+    @MethodSource("bookRoomNullTestCases")
+    @DisplayName("bookRoom - med null parametrar - kastar IllegalArgumentException")
     void bookRoom_WithAnyNullParameter_ThrowsException(
             String roomId, LocalDateTime startTime, LocalDateTime endTime) {
 
         assertThatThrownBy(() ->
                 bookingSystem.bookRoom(roomId, startTime, endTime))
+                .as("Testar bookRoom med: roomId=%s, startTime=%s, endTime=%s",
+                        roomId, startTime, endTime)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Bokning kräver giltiga start- och sluttider samt rum-id");
     }
 
-    private static Stream<Arguments> nullParameterTestCases() {
-        LocalDateTime startTime = LocalDateTime.of(2026, 1, 7, 10, 0);
-        LocalDateTime endTime = LocalDateTime.of(2026, 1, 7, 11, 0);
-
+    private static Stream<Arguments> bookRoomNullTestCases() {
         return Stream.of(
-                Arguments.of(null, startTime, endTime),
-                Arguments.of("room1", null, endTime),
-                Arguments.of("room1", startTime, null),
-                Arguments.of(null, null, endTime),
-                Arguments.of(null, startTime, null),
-                Arguments.of("room1", null, null),
+                Arguments.of(null, FUTURE_START_TIME, FUTURE_END_TIME),
+                Arguments.of(ROOM_ID, null, FUTURE_END_TIME),
+                Arguments.of(ROOM_ID, FUTURE_START_TIME, null),
+                Arguments.of(null, null, FUTURE_END_TIME),
+                Arguments.of(null, FUTURE_START_TIME, null),
+                Arguments.of(ROOM_ID, null, null),
                 Arguments.of(null, null, null)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("getAvailableRoomsNullTestCases")
+    @DisplayName("getAvailableRooms - med null parametrar - kastar IllegalArgumentException")
+    void getAvailableRooms_WithNullParameters_ThrowsException(
+            LocalDateTime startTime, LocalDateTime endTime) {
+
+        assertThatThrownBy(() -> bookingSystem.getAvailableRooms(startTime, endTime))
+                .as("Testar getAvailableRooms med: startTime=%s, endTime=%s",
+                        startTime, endTime)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Måste ange både start- och sluttid");
+    }
+
+    private static Stream<Arguments> getAvailableRoomsNullTestCases() {
+        return Stream.of(
+                Arguments.of(null, FUTURE_END_TIME),
+                Arguments.of(FUTURE_START_TIME, null),
+                Arguments.of(null, null)
         );
     }
 
@@ -242,29 +262,6 @@ class BookingSystemTest {
         assertThat(result).isTrue();
     }
 
-    @Test
-    @DisplayName("getAvailableRooms med null starttid - kastar exception")
-    void getAvailableRooms_WithNullStartTime_ThrowsException() {
-        assertThatThrownBy(() -> bookingSystem.getAvailableRooms(null, FUTURE_END_TIME))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Måste ange både start- och sluttid");
-    }
-
-    @Test
-    @DisplayName("getAvailableRooms med null sluttid - kastar exception")
-    void getAvailableRooms_WithNullEndTime_ThrowsException() {
-        assertThatThrownBy(() -> bookingSystem.getAvailableRooms(FUTURE_START_TIME, null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Måste ange både start- och sluttid");
-    }
-
-    @Test
-    @DisplayName("getAvailableRooms med båda null - kastar exception")
-    void getAvailableRooms_WithBothNull_ThrowsException() {
-        assertThatThrownBy(() -> bookingSystem.getAvailableRooms(null, null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Måste ange både start- och sluttid");
-    }
     @Test
     @DisplayName("getAvailableRooms med sluttid före starttid - kastar exception")
     void getAvailableRooms_WithEndTimeBeforeStart_ThrowsException() {
