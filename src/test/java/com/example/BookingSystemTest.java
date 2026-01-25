@@ -303,4 +303,14 @@ class BookingSystemTest {
                 .containsExactly(room)
                 .doesNotContain(otherRoom);
     }
+
+    @Test
+    @DisplayName("getAvailableRooms med tom repository - returnerar tom lista")
+    void getAvailableRooms_WithEmptyRepository_ReturnsEmptyList() {
+        when(roomRepository.findAll()).thenReturn(Collections.emptyList());
+
+        List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
+
+        assertThat(result).isEmpty();
+    }
 }
