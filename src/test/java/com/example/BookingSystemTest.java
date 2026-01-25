@@ -456,5 +456,25 @@ class BookingSystemTest {
             verify(roomRepository).save(firstRoom);
             verify(notificationService).sendCancellationConfirmation(futureBooking);
         }
+
+        @Test
+        @DisplayName("Lyckad avbokning skickar notifikation")
+        void cancelBooking_SuccessfulCancellation_SendsNotification() throws NotificationException {
+            Booking futureBooking = new Booking(
+                    FUTURE_BOOKING_ID,
+                    ROOM_ID,
+                    FUTURE_START_TIME,
+                    FUTURE_END_TIME
+            );
+            firstRoom.addBooking(futureBooking);
+
+            List<Room> allRooms = List.of(firstRoom);
+            when(roomRepository.findAll()).thenReturn(allRooms);
+
+            boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
+
+            assertThat(result).isTrue();
+            verify(notificationService).sendCancellationConfirmation(futureBooking);
+        }
     }
 }
