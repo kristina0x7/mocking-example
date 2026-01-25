@@ -13,12 +13,10 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.AssertionsForClassTypes.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,7 +24,8 @@ class BookingSystemTest {
 
     private static final String ROOM_ID = "room1";
     private static final String ROOM_NAME = "Room A";
-    private static final String BOOKING_ID = "booking1";
+    private static final String OTHER_ROOM_ID = "room2";
+    private static final String OTHER_ROOM_NAME = "Room B";
 
     private static final LocalDateTime CURRENT_TIME = LocalDateTime.of(2026, 1, 7, 9, 0);
     private static final LocalDateTime FUTURE_START_TIME = CURRENT_TIME.plusHours(1);
@@ -47,11 +46,15 @@ class BookingSystemTest {
     BookingSystem bookingSystem;
 
     private Room room;
+    private Room otherRoom;
+
 
     @BeforeEach
     @DisplayName("Förbered testdata och mock-inställningar")
     void setUp() {
         room = new Room(ROOM_ID, ROOM_NAME);
+        otherRoom = new Room(OTHER_ROOM_ID, OTHER_ROOM_NAME);
+
         Mockito.lenient().when(timeProvider.getCurrentTime()).thenReturn(CURRENT_TIME);
         Mockito.lenient().when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
     }
