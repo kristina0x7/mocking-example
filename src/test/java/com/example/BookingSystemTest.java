@@ -13,6 +13,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -51,6 +53,7 @@ class BookingSystemTest {
     void setUp() {
         room = new Room(ROOM_ID, ROOM_NAME);
         Mockito.lenient().when(timeProvider.getCurrentTime()).thenReturn(CURRENT_TIME);
+        Mockito.lenient().when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
     }
 
     @ParameterizedTest
@@ -83,8 +86,6 @@ class BookingSystemTest {
     @Test
     @DisplayName("Skapa bokning med korrekta parametrar - ska spara och returnera true")
     void bookRoom_WithValidParameters_ReturnsTrueAndSavesRoom() {
-        when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(room));
-
         boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
         assertThat(result).isTrue();
