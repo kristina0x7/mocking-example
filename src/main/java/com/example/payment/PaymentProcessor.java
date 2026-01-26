@@ -16,7 +16,10 @@ public class PaymentProcessor {
         this.emailSender = Objects.requireNonNull(emailSender, "emailSender cannot be null");
     }
 
-    public boolean processPayment(double amount) {
+    public boolean processPayment(double amount, String email) {
+        if (amount <= 0) { throw new IllegalArgumentException("Amount must be positive");}
+        if (email == null || email.isBlank()) { throw new IllegalArgumentException("Email cannot be null or empty");
+        }
         PaymentApiResponse response = paymentApiClient.charge(amount);
 
         if (response.isSuccess()) {
@@ -28,7 +31,7 @@ public class PaymentProcessor {
             }
 
             try {
-                emailSender.sendPaymentConfirmation("user@example.com", amount);
+                emailSender.sendPaymentConfirmation(email, amount);
             } catch (EmailSendingException e) {
                 // Fortsätt
             }
