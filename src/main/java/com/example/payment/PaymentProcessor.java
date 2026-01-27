@@ -18,8 +18,8 @@ public class PaymentProcessor {
 
     public boolean processPayment(double amount, String email) {
         if (amount <= 0) { throw new IllegalArgumentException("Amount must be positive");}
-        if (email == null || email.isBlank()) { throw new IllegalArgumentException("Email cannot be null or empty");
-        }
+        if (email == null || email.isBlank()) { throw new IllegalArgumentException("Email cannot be null or empty");}
+
         PaymentApiResponse response = paymentApiClient.charge(amount);
 
         if (response.isSuccess()) {
@@ -27,7 +27,7 @@ public class PaymentProcessor {
             try {
                 paymentRepository.savePayment(amount, PaymentStatus.SUCCESS);
             } catch (PaymentPersistenceException e) {
-                // Fortsätt
+                throw new PaymentPersistenceException("Failed to save payment", e);
             }
 
             try {
