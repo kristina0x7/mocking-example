@@ -16,7 +16,7 @@ public class PaymentProcessor {
         this.emailSender = Objects.requireNonNull(emailSender, "emailSender cannot be null");
     }
 
-    public boolean processPayment(double amount, String email) {
+    public boolean processPayment(double amount, String email) throws PaymentProcessingException {
         if (amount <= 0) { throw new IllegalArgumentException("Amount must be positive");}
         if (email == null || email.isBlank()) { throw new IllegalArgumentException("Email cannot be null or empty");}
 
@@ -26,9 +26,10 @@ public class PaymentProcessor {
         if (success) {
 
             try {
-                paymentRepository.savePayment(amount, PaymentStatus.SAVEDPAYMENT);
+                paymentRepository.savePayment(amount, PaymentStatus.COMPLETED);
             } catch (PaymentDataAccessException e) {
-                throw new PaymentProcessingException("Failed to save payment", e);
+                // Wrap och kasta vidare
+                throw new PaymentProcessingException("Failed to save payment");
             }
 
             try {
