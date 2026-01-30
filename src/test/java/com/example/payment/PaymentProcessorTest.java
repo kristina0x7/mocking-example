@@ -1,5 +1,6 @@
 package com.example.payment;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -64,4 +65,55 @@ class PaymentProcessorTest {
     @Nested
     @DisplayName("Validering av input")
     class InputValidationTests {
+    // Parameterizedtest of amountmustbepos,emailcannotbenull,emailcannotbeempty(samma meddelande på två sista)
+    }
+
+    @Nested
+    @DisplayName("Lyckad betalning")
+    class HappyPathTests {
+
+    @Test
+        void paymentSavedAndEmailSent() {
+    }
+}
+
+    @Nested
+    @DisplayName("Misslyckad betalning")
+    class FailedPaymentTests {
+
+    @Test
+        void failedPayment_noSaveNoEmail(){
+    }
+}
+
+    @Nested
+    @DisplayName("Lyckad betalning utan transactionId")
+    class MissingTransactionIdTests {
+
+    @Test
+        void nullTransactionId_throwsPaymentProcessingException() {
+    }
+
+    @Test
+       void blankTransactionId_throwsPaymentProcessingException() {
+    }
+}
+
+    @Nested
+    @DisplayName("Repository-fel")
+    class RepositoryExceptionTests {
+
+    @Test
+        void savePaymentFails_throwsPaymentProcessingException() {
+    }
+}
+
+    @Nested
+    @DisplayName("Email-fel")
+    class EmailExceptionTests {
+
+        @Test
+        void emailFailure_doesNotFailPayment() {
+
+        }
     }
