@@ -31,7 +31,7 @@ class PaymentProcessorTest {
     class ConstructorTests {
 
         @Test
-        @DisplayName("Skapa PaymentProcessor med null PaymentApiClient - ska kasta NullPointerException")
+        @DisplayName("Null PaymentApiClient kastar NullPointerException")
         void constructor_NullPaymentApiClient_ThrowsNullPointerException() {
             assertThatThrownBy(() ->
                     new PaymentProcessor(null, paymentRepository, emailSender))
@@ -40,4 +40,12 @@ class PaymentProcessorTest {
         }
     }
 
+    @Test
+    @DisplayName("Null PaymentRepository kastar NullPointerException")
+    void constructor_NullPaymentRepository_ThrowsNullPointerException() {
+        assertThatThrownBy(() ->
+                new PaymentProcessor(paymentApiClient, null, emailSender))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("paymentRepository cannot be null");
+    }
 }
