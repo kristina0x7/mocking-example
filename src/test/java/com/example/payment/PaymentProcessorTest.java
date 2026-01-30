@@ -224,19 +224,6 @@ class PaymentProcessorTest {
         }
 
         @Nested
-        @DisplayName("Lyckad betalning utan transactionId")
-        class MissingTransactionIdTests {
-
-            @Test
-            void nullTransactionId_throwsPaymentProcessingException() {
-            }
-
-            @Test
-            void blankTransactionId_throwsPaymentProcessingException() {
-            }
-        }
-
-        @Nested
         @DisplayName("Repository-fel")
         class RepositoryExceptionTests {
 
