@@ -42,6 +42,7 @@ class PaymentProcessorTest {
     private ArgumentCaptor<String> transactionIdCaptor;
 
     private static final String VALID_EMAIL = "name@example.com";
+    private static final double VALID_AMOUNT = 100.50;
 
 
     @Nested
@@ -88,6 +89,14 @@ class PaymentProcessorTest {
             assertThatThrownBy(() -> paymentProcessor.processPayment(invalidAmount, VALID_EMAIL))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Amount must be positive");
+        }
+
+        @Test
+        @DisplayName("Null email kastar IllegalArgumentException")
+        void processPayment_NullEmail_ThrowsIllegalArgumentException() {
+            assertThatThrownBy(() -> paymentProcessor.processPayment(VALID_AMOUNT, null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Email cannot be null or empty");
         }
     }
 
