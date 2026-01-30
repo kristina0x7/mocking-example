@@ -1,4 +1,4 @@
 package com.example.payment;
 
-public record PaymentApiResponse(boolean isSuccess) {
+public record PaymentApiResponse(boolean isSuccess, String transactionId) {
 }

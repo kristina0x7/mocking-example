@@ -1,5 +1,5 @@
 package com.example.payment;
 
 public interface PaymentRepository {
-    void savePayment(double amount, PaymentStatus status) throws PaymentDataAccessException;
+    void savePayment(double amount, PaymentStatus status, String transactionId) throws PaymentDataAccessException;
 }
