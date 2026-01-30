@@ -17,8 +17,7 @@ public class PaymentGatewayClient implements PaymentApiClient {
 
         return new PaymentApiResponse(
                 externalResponse.isSuccess(),
-                externalResponse.getTransactionId()
-
+                externalResponse.transactionId()
         );
     }
 }
