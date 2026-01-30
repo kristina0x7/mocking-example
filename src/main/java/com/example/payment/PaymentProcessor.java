@@ -25,8 +25,12 @@ public class PaymentProcessor {
 
         if (success) {
 
+            if (response.transactionId() == null || response.transactionId().isBlank()) {
+                throw new PaymentProcessingException("Successful payment is missing transaction id");
+            }
+
             try {
-                paymentRepository.savePayment(amount, PaymentStatus.COMPLETED);
+                paymentRepository.savePayment(amount, PaymentStatus.COMPLETED, response.transactionId());
             } catch (PaymentDataAccessException e) {
                 // Wrap och kasta vidare
                 throw new PaymentProcessingException("Failed to save payment");
