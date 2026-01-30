@@ -26,7 +26,7 @@ public class PaymentProcessor {
         if (success) {
 
             try {
-                paymentRepository.savePayment(amount, PaymentStatus.COMPLETED);
+                paymentRepository.savePayment(amount, PaymentStatus.COMPLETED, response.transactionId());
             } catch (PaymentDataAccessException e) {
                 // Wrap och kasta vidare
                 throw new PaymentProcessingException("Failed to save payment");
