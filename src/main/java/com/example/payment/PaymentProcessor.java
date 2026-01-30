@@ -17,23 +17,17 @@ public class PaymentProcessor {
     }
 
     public boolean processPayment(double amount, String email) throws PaymentProcessingException {
-        if (amount <= 0) { throw new IllegalArgumentException("Amount must be positive");}
-        if (email == null || email.isBlank()) { throw new IllegalArgumentException("Email cannot be null or empty");}
+        if (amount <= 0) throw new IllegalArgumentException("Amount must be positive");
+        if (email == null || email.isBlank()) throw new IllegalArgumentException("Email cannot be null or empty");
 
         PaymentApiResponse response = paymentApiClient.charge(amount);
-        boolean success = response.isSuccess();
 
-        if (success) {
-
-            if (response.transactionId() == null || response.transactionId().isBlank()) {
-                throw new PaymentProcessingException("Successful payment is missing transaction id");
-            }
-
+        if (response.isSuccess()) {
             try {
                 paymentRepository.savePayment(amount, PaymentStatus.COMPLETED, response.transactionId());
             } catch (PaymentDataAccessException e) {
                 // Wrap och kasta vidare
-                throw new PaymentProcessingException("Failed to save payment");
+                throw new PaymentProcessingException("Failed to save payment", e);
             }
 
             try {
@@ -41,7 +35,9 @@ public class PaymentProcessor {
             } catch (EmailSendingException e) {
                 // Fortsätt
             }
+            return true;
+        } else {
+            return false;
         }
-        return success;
     }
 }
