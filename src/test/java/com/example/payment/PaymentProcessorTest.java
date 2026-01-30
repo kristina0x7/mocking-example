@@ -170,6 +170,20 @@ class PaymentProcessorTest {
             assertThat(result).isTrue();
         }
 
+        @Test
+        @DisplayName("Returnerar API:ets success-flagga")
+        void processPayment_ReturnsApiSuccessFlag() throws PaymentProcessingException {
+
+            boolean expectedSuccessValue = true;
+            PaymentApiResponse apiResponse = new PaymentApiResponse(expectedSuccessValue, VALID_TRANSACTION_ID);
+            when(paymentApiClient.charge(VALID_AMOUNT)).thenReturn(apiResponse);
+
+            boolean actualResult = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
+
+            assertThat(actualResult).isEqualTo(expectedSuccessValue);
+            assertThat(actualResult).isEqualTo(apiResponse.isSuccess());
+        }
+
     }
         @Nested
         @DisplayName("Misslyckad betalning")
