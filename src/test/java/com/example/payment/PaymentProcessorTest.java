@@ -48,4 +48,13 @@ class PaymentProcessorTest {
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("paymentRepository cannot be null");
     }
+
+    @Test
+    @DisplayName("Null EmailSender kastar NullPointerException")
+    void constructor_NullEmailSender_ThrowsNullPointerException() {
+        assertThatThrownBy(() ->
+                new PaymentProcessor(paymentApiClient, paymentRepository, null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("emailSender cannot be null");
+    }
 }
