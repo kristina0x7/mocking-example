@@ -189,8 +189,23 @@ class PaymentProcessorTest {
         @DisplayName("Misslyckad betalning")
         class FailedPaymentTests {
 
+            @BeforeEach
+            void setUp() {
+                PaymentApiResponse failedResponse = new PaymentApiResponse(false, null);
+                when(paymentApiClient.charge(anyDouble())).thenReturn(failedResponse);
+            }
+
             @Test
-            void failedPayment_noSaveNoEmail() {
+            @DisplayName("Misslyckad betalning - inget sparas och inget email skickas")
+            void processPayment_FailedPayment_NoSaveNoEmail() throws PaymentProcessingException,
+                    PaymentDataAccessException, EmailSendingException {
+
+                boolean result = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
+
+                assertThat(result).isFalse();
+                verify(paymentRepository, never()).savePayment(anyDouble(), any(), anyString());
+                verify(emailSender, never()).sendPaymentConfirmation(anyString(), anyDouble());
+                verify(paymentApiClient).charge(VALID_AMOUNT);
             }
         }
 
