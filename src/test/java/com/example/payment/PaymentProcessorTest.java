@@ -1,5 +1,6 @@
 package com.example.payment;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentProcessorTest {
@@ -44,6 +48,7 @@ class PaymentProcessorTest {
 
     private static final String VALID_EMAIL = "name@example.com";
     private static final double VALID_AMOUNT = 100.50;
+    private static final String VALID_TRANSACTION_ID = "id_111222333";
 
 
     @Nested
@@ -115,49 +120,82 @@ class PaymentProcessorTest {
     @DisplayName("Lyckad betalning")
     class HappyPathTests {
 
+        private PaymentApiResponse successResponse;
+
+        @BeforeEach
+        void setUp() {
+
+            successResponse = new PaymentApiResponse(true, VALID_TRANSACTION_ID);
+
+            when(paymentApiClient.charge(VALID_AMOUNT)).thenReturn(successResponse);
+        }
+
         @Test
-        void paymentSavedAndEmailSent() {
+        @DisplayName("Lyckad betalning - allt sparas och email skickas")
+        void processPayment_SuccessfulPayment_SavesPaymentAndSendsEmail() throws PaymentProcessingException,
+                PaymentDataAccessException, EmailSendingException {
+
+            boolean result = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
+
+            assertThat(result).isTrue();
+
+            verify(paymentRepository).savePayment(
+                    amountCaptor.capture(),
+                    statusCaptor.capture(),
+                    transactionIdCaptor.capture()
+            );
+
+            assertThat(amountCaptor.getValue()).isEqualTo(VALID_AMOUNT);
+            assertThat(statusCaptor.getValue()).isEqualTo(PaymentStatus.COMPLETED);
+            assertThat(transactionIdCaptor.getValue()).isEqualTo(VALID_TRANSACTION_ID);
+
+            verify(emailSender).sendPaymentConfirmation(
+                    emailCaptor.capture(),
+                    amountCaptor.capture()
+            );
+
+            assertThat(emailCaptor.getValue()).isEqualTo(VALID_EMAIL);
+            assertThat(amountCaptor.getValue()).isEqualTo(VALID_AMOUNT);
         }
     }
+        @Nested
+        @DisplayName("Misslyckad betalning")
+        class FailedPaymentTests {
 
-    @Nested
-    @DisplayName("Misslyckad betalning")
-    class FailedPaymentTests {
+            @Test
+            void failedPayment_noSaveNoEmail() {
+            }
+        }
 
-        @Test
-        void failedPayment_noSaveNoEmail() {
+        @Nested
+        @DisplayName("Lyckad betalning utan transactionId")
+        class MissingTransactionIdTests {
+
+            @Test
+            void nullTransactionId_throwsPaymentProcessingException() {
+            }
+
+            @Test
+            void blankTransactionId_throwsPaymentProcessingException() {
+            }
+        }
+
+        @Nested
+        @DisplayName("Repository-fel")
+        class RepositoryExceptionTests {
+
+            @Test
+            void savePaymentFails_throwsPaymentProcessingException() {
+            }
+        }
+
+        @Nested
+        @DisplayName("Email-fel")
+        class EmailExceptionTests {
+
+            @Test
+            void emailFailure_doesNotFailPayment() {
+
+            }
         }
     }
-
-    @Nested
-    @DisplayName("Lyckad betalning utan transactionId")
-    class MissingTransactionIdTests {
-
-        @Test
-        void nullTransactionId_throwsPaymentProcessingException() {
-        }
-
-        @Test
-        void blankTransactionId_throwsPaymentProcessingException() {
-        }
-    }
-
-    @Nested
-    @DisplayName("Repository-fel")
-    class RepositoryExceptionTests {
-
-        @Test
-        void savePaymentFails_throwsPaymentProcessingException() {
-        }
-    }
-
-    @Nested
-    @DisplayName("Email-fel")
-    class EmailExceptionTests {
-
-        @Test
-        void emailFailure_doesNotFailPayment() {
-
-        }
-    }
-}
