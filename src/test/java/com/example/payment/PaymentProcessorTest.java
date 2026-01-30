@@ -207,6 +207,20 @@ class PaymentProcessorTest {
                 verify(emailSender, never()).sendPaymentConfirmation(anyString(), anyDouble());
                 verify(paymentApiClient).charge(VALID_AMOUNT);
             }
+
+            @Test
+            @DisplayName("Returnerar false när API:et returnerar false")
+            void processPayment_ReturnsFalse_WhenApiReturnsFalse() throws PaymentProcessingException {
+
+                boolean expectedSuccessValue = false;
+                PaymentApiResponse apiResponse = new PaymentApiResponse(expectedSuccessValue, null);
+                when(paymentApiClient.charge(VALID_AMOUNT)).thenReturn(apiResponse);
+
+                boolean actualResult = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
+
+                assertThat(actualResult).isEqualTo(expectedSuccessValue);
+                assertThat(actualResult).isFalse();
+            }
         }
 
         @Nested
