@@ -122,7 +122,7 @@ class PaymentProcessorTest {
         private PaymentApiResponse successResponse;
 
         @BeforeEach
-        void setUp() {
+        void setUp() throws PaymentProcessingException {
 
             successResponse = new PaymentApiResponse(true, VALID_TRANSACTION_ID);
 
@@ -190,7 +190,7 @@ class PaymentProcessorTest {
         class FailedPaymentTests {
 
             @BeforeEach
-            void setUp() {
+            void setUp() throws PaymentProcessingException {
                 PaymentApiResponse failedResponse = new PaymentApiResponse(false, null);
                 when(paymentApiClient.charge(anyDouble())).thenReturn(failedResponse);
             }
