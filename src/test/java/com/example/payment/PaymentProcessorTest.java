@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -95,6 +96,16 @@ class PaymentProcessorTest {
         @DisplayName("Null email kastar IllegalArgumentException")
         void processPayment_NullEmail_ThrowsIllegalArgumentException() {
             assertThatThrownBy(() -> paymentProcessor.processPayment(VALID_AMOUNT, null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Email cannot be null or empty");
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = {" ", "  ", "\t", "\n"})
+        @DisplayName("Tom eller blank email kastar IllegalArgumentException")
+        void processPayment_EmptyOrBlankEmail_ThrowsIllegalArgumentException(String invalidEmail) {
+            assertThatThrownBy(() -> paymentProcessor.processPayment(VALID_AMOUNT, invalidEmail))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Email cannot be null or empty");
         }
