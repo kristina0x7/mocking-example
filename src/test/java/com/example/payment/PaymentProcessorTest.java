@@ -16,8 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentProcessorTest {
@@ -139,6 +138,8 @@ class PaymentProcessorTest {
 
             assertThat(result).isTrue();
 
+            verify(paymentApiClient, times(1)).charge(VALID_AMOUNT);
+
             verify(paymentRepository).savePayment(
                     amountCaptor.capture(),
                     statusCaptor.capture(),
@@ -156,7 +157,12 @@ class PaymentProcessorTest {
 
             assertThat(emailCaptor.getValue()).isEqualTo(VALID_EMAIL);
             assertThat(amountCaptor.getValue()).isEqualTo(VALID_AMOUNT);
+
+            verifyNoMoreInteractions(paymentApiClient, paymentRepository, emailSender);
         }
+
+
+
     }
         @Nested
         @DisplayName("Misslyckad betalning")
