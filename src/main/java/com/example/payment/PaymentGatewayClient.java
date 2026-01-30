@@ -9,4 +9,16 @@ public class PaymentGatewayClient implements PaymentApiClient {
         }
         this.apiKey = apiKey;
     }
+
+    @Override
+    public PaymentApiResponse charge(double amount) {
+
+        PaymentApiResponse externalResponse = PaymentApi.charge(apiKey, amount);
+
+        return new PaymentApiResponse(
+                externalResponse.isSuccess(),
+                externalResponse.getTransactionId()
+
+        );
+    }
 }
