@@ -161,7 +161,14 @@ class PaymentProcessorTest {
             verifyNoMoreInteractions(paymentApiClient, paymentRepository, emailSender);
         }
 
+        @Test
+        @DisplayName("Lyckad betalning returnerar true")
+        void processPayment_SuccessfulPayment_ReturnsTrue() throws PaymentProcessingException {
 
+            boolean result = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
+
+            assertThat(result).isTrue();
+        }
 
     }
         @Nested
