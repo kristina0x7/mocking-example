@@ -55,6 +55,13 @@ class PaymentProcessorTest {
     class ConstructorTests {
 
         @Test
+        @DisplayName("Skapar PaymentProcessor med alla beroenden")
+        void constructor_WithValidDependencies_Success() {
+            PaymentProcessor processor = new PaymentProcessor(paymentApiClient, paymentRepository, emailSender);
+            assertThat(processor).isNotNull();
+        }
+
+        @Test
         @DisplayName("Null PaymentApiClient kastar NullPointerException")
         void constructor_NullPaymentApiClient_ThrowsNullPointerException() {
             assertThatThrownBy(() ->
@@ -84,7 +91,7 @@ class PaymentProcessorTest {
     }
 
     @Nested
-    @DisplayName("Validering av input")
+    @DisplayName("Input validering")
     class InputValidationTests {
 
         @ParameterizedTest
@@ -94,6 +101,7 @@ class PaymentProcessorTest {
             assertThatThrownBy(() -> paymentProcessor.processPayment(invalidAmount, VALID_EMAIL))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Amount must be positive");
+            verifyNoInteractions(paymentApiClient, paymentRepository, emailSender);
         }
 
         @Test
@@ -102,6 +110,7 @@ class PaymentProcessorTest {
             assertThatThrownBy(() -> paymentProcessor.processPayment(VALID_AMOUNT, null))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Email cannot be null or empty");
+            verifyNoInteractions(paymentApiClient, paymentRepository, emailSender);
         }
 
         @ParameterizedTest
@@ -112,33 +121,40 @@ class PaymentProcessorTest {
             assertThatThrownBy(() -> paymentProcessor.processPayment(VALID_AMOUNT, invalidEmail))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Email cannot be null or empty");
+            verifyNoInteractions(paymentApiClient, paymentRepository, emailSender);
         }
     }
 
     @Nested
     @DisplayName("Lyckad betalning")
-    class HappyPathTests {
+    class SuccessfulPaymentTests {
 
         private PaymentApiResponse successResponse;
 
         @BeforeEach
         void setUp() throws PaymentProcessingException {
-
             successResponse = new PaymentApiResponse(true, VALID_TRANSACTION_ID);
-
             when(paymentApiClient.charge(VALID_AMOUNT)).thenReturn(successResponse);
         }
 
         @Test
-        @DisplayName("Lyckad betalning - allt sparas och email skickas")
-        void processPayment_SuccessfulPayment_SavesPaymentAndSendsEmail() throws PaymentProcessingException,
-                PaymentDataAccessException, EmailSendingException {
-
+        @DisplayName("Lyckad betalning returnerar true")
+        void processPayment_SuccessfulPayment_ReturnsTrue() throws PaymentProcessingException {
             boolean result = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
-
             assertThat(result).isTrue();
+        }
 
-            verify(paymentApiClient, times(1)).charge(VALID_AMOUNT);
+        @Test
+        @DisplayName("Anropar PaymentApiClient.charge med korrekt belopp")
+        void processPayment_CallsApiClientWithCorrectAmount() throws PaymentProcessingException {
+            paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
+            verify(paymentApiClient).charge(VALID_AMOUNT);
+        }
+
+        @Test
+        @DisplayName("Sparar betalning med korrekt data")
+        void processPayment_SavesPaymentToRepository() throws PaymentProcessingException, PaymentDataAccessException {
+            paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
 
             verify(paymentRepository).savePayment(
                     amountCaptor.capture(),
@@ -149,6 +165,12 @@ class PaymentProcessorTest {
             assertThat(amountCaptor.getValue()).isEqualTo(VALID_AMOUNT);
             assertThat(statusCaptor.getValue()).isEqualTo(PaymentStatus.COMPLETED);
             assertThat(transactionIdCaptor.getValue()).isEqualTo(VALID_TRANSACTION_ID);
+        }
+
+        @Test
+        @DisplayName("Skickar bekräftelse-email")
+        void processPayment_SendsConfirmationEmail() throws PaymentProcessingException, EmailSendingException {
+            paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
 
             verify(emailSender).sendPaymentConfirmation(
                     emailCaptor.capture(),
@@ -157,88 +179,97 @@ class PaymentProcessorTest {
 
             assertThat(emailCaptor.getValue()).isEqualTo(VALID_EMAIL);
             assertThat(amountCaptor.getValue()).isEqualTo(VALID_AMOUNT);
+        }
+    }
 
-            verifyNoMoreInteractions(paymentApiClient, paymentRepository, emailSender);
+    @Nested
+    @DisplayName("Misslyckad betalning (API returnerar false)")
+    class FailedPaymentTests {
+
+        @Test
+        @DisplayName("API misslyckas - returnerar false och sparar inte")
+        void processPayment_ApiFails_ReturnsFalseAndNoSave() throws PaymentProcessingException, PaymentDataAccessException, EmailSendingException {
+            PaymentApiResponse failedResponse = new PaymentApiResponse(false, null);
+            when(paymentApiClient.charge(VALID_AMOUNT)).thenReturn(failedResponse);
+
+            boolean result = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
+
+            assertThat(result).isFalse();
+            verify(paymentRepository, never()).savePayment(anyDouble(), any(), anyString());
+            verify(emailSender, never()).sendPaymentConfirmation(anyString(), anyDouble());
         }
 
         @Test
-        @DisplayName("Lyckad betalning returnerar true")
-        void processPayment_SuccessfulPayment_ReturnsTrue() throws PaymentProcessingException {
+        @DisplayName("API misslyckas med transactionId - sparar inte heller")
+        void processPayment_ApiFailsWithTransactionId_NoSave() throws PaymentProcessingException, PaymentDataAccessException, EmailSendingException {
+
+            PaymentApiResponse failedResponse = new PaymentApiResponse(false, "failed-txn-123");
+            when(paymentApiClient.charge(VALID_AMOUNT)).thenReturn(failedResponse);
+
+            boolean result = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
+
+            assertThat(result).isFalse();
+            verify(paymentRepository, never()).savePayment(anyDouble(), any(), anyString());
+            verify(emailSender, never()).sendPaymentConfirmation(anyString(), anyDouble());
+        }
+    }
+
+    @Nested
+    @DisplayName("Exception-hantering")
+    class ExceptionHandlingTests {
+
+        @Test
+        @DisplayName("Repository-exception kastar PaymentProcessingException")
+        void processPayment_RepositoryException_ThrowsPaymentProcessingException()
+                throws PaymentDataAccessException, PaymentProcessingException, EmailSendingException {
+
+            PaymentApiResponse successResponse = new PaymentApiResponse(true, VALID_TRANSACTION_ID);
+            when(paymentApiClient.charge(VALID_AMOUNT)).thenReturn(successResponse);
+
+            PaymentDataAccessException repoException = new PaymentDataAccessException("DB error");
+            doThrow(repoException)
+                    .when(paymentRepository)
+                    .savePayment(VALID_AMOUNT, PaymentStatus.COMPLETED, VALID_TRANSACTION_ID);
+
+
+            assertThatThrownBy(() -> paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL))
+                    .isInstanceOf(PaymentProcessingException.class)
+                    .hasMessage("Failed to save payment")
+                    .hasCause(repoException);
+
+            verify(emailSender, never()).sendPaymentConfirmation(anyString(), anyDouble());
+        }
+
+        @Test
+        @DisplayName("Email-exception påverkar inte betalningen")
+        void processPayment_EmailException_PaymentStillSuccessful()
+                throws PaymentProcessingException, EmailSendingException, PaymentDataAccessException {
+
+            PaymentApiResponse successResponse = new PaymentApiResponse(true, VALID_TRANSACTION_ID);
+            when(paymentApiClient.charge(VALID_AMOUNT)).thenReturn(successResponse);
+
+            doThrow(new EmailSendingException("SMTP error"))
+                    .when(emailSender)
+                    .sendPaymentConfirmation(VALID_EMAIL, VALID_AMOUNT);
 
             boolean result = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
 
             assertThat(result).isTrue();
+            verify(paymentRepository).savePayment(VALID_AMOUNT, PaymentStatus.COMPLETED, VALID_TRANSACTION_ID);
         }
 
         @Test
-        @DisplayName("Returnerar API:ets success-flagga")
-        void processPayment_ReturnsApiSuccessFlag() throws PaymentProcessingException {
+        @DisplayName("Payment API-exception kastas vidare")
+        void processPayment_ApiThrowsPaymentProcessingException_BubblesUp() throws PaymentProcessingException {
 
-            boolean expectedSuccessValue = true;
-            PaymentApiResponse apiResponse = new PaymentApiResponse(expectedSuccessValue, VALID_TRANSACTION_ID);
-            when(paymentApiClient.charge(VALID_AMOUNT)).thenReturn(apiResponse);
+            PaymentProcessingException apiException = new PaymentProcessingException("API failed");
+            when(paymentApiClient.charge(VALID_AMOUNT)).thenThrow(apiException);
 
-            boolean actualResult = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
+            assertThatThrownBy(() ->
+                    paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL))
+                    .isSameAs(apiException);
 
-            assertThat(actualResult).isEqualTo(expectedSuccessValue);
-            assertThat(actualResult).isEqualTo(apiResponse.isSuccess());
-        }
-
-    }
-        @Nested
-        @DisplayName("Misslyckad betalning")
-        class FailedPaymentTests {
-
-            @BeforeEach
-            void setUp() throws PaymentProcessingException {
-                PaymentApiResponse failedResponse = new PaymentApiResponse(false, null);
-                when(paymentApiClient.charge(anyDouble())).thenReturn(failedResponse);
-            }
-
-            @Test
-            @DisplayName("Misslyckad betalning - inget sparas och inget email skickas")
-            void processPayment_FailedPayment_NoSaveNoEmail() throws PaymentProcessingException,
-                    PaymentDataAccessException, EmailSendingException {
-
-                boolean result = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
-
-                assertThat(result).isFalse();
-                verify(paymentRepository, never()).savePayment(anyDouble(), any(), anyString());
-                verify(emailSender, never()).sendPaymentConfirmation(anyString(), anyDouble());
-                verify(paymentApiClient).charge(VALID_AMOUNT);
-            }
-
-            @Test
-            @DisplayName("Returnerar false när API:et returnerar false")
-            void processPayment_ReturnsFalse_WhenApiReturnsFalse() throws PaymentProcessingException {
-
-                boolean expectedSuccessValue = false;
-                PaymentApiResponse apiResponse = new PaymentApiResponse(expectedSuccessValue, null);
-                when(paymentApiClient.charge(VALID_AMOUNT)).thenReturn(apiResponse);
-
-                boolean actualResult = paymentProcessor.processPayment(VALID_AMOUNT, VALID_EMAIL);
-
-                assertThat(actualResult).isEqualTo(expectedSuccessValue);
-                assertThat(actualResult).isFalse();
-            }
-        }
-
-        @Nested
-        @DisplayName("Repository-fel")
-        class RepositoryExceptionTests {
-
-            @Test
-            void savePaymentFails_throwsPaymentProcessingException() {
-            }
-        }
-
-        @Nested
-        @DisplayName("Email-fel")
-        class EmailExceptionTests {
-
-            @Test
-            void emailFailure_doesNotFailPayment() {
-
-            }
+            verifyNoInteractions(paymentRepository, emailSender);
         }
     }
+}
