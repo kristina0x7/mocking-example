@@ -18,7 +18,7 @@ class ShoppingCartTest {
     @Test
     @DisplayName("Ny varukorg ska vara tom")
     void newCart_ShouldBeEmpty(){
-        assertThat(cart.isEmpty()).istrue();
+        assertThat(cart.isEmpty()).isTrue();
         assertThat(cart.getItemCount()).isEqualTo(0);
     }
 
