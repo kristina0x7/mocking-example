@@ -115,4 +115,28 @@ class ShoppingCartTest {
                 .isInstanceOf(CartException.class)
                 .hasMessageContaining("not found");
     }
+
+    @Test
+    @DisplayName("Procentuell rabatt ska tillämpas på varukorgens totalpris")
+    void getDiscountedPrice_withPercentageDiscount_shouldApplyDiscount() {
+        Product apple = new Product("Apple", 100.0);
+        cart.addProduct(apple);
+
+        Discount discount = new PercentageDiscount(10.0);
+        double discounted = cart.getDiscountedPrice(discount);
+
+        assertThat(discounted).isEqualTo(90.0);
+    }
+
+    @Test
+    @DisplayName("Fast rabatt ska dras av från varukorgens totalpris")
+    void getDiscountedPrice_withFixedDiscount_shouldApplyDiscount() {
+        Product banana = new Product("Banana", 50.0);
+        cart.addProduct(banana, 3);
+
+        Discount discount = new FixedDiscount(20.0);
+        double discounted = cart.getDiscountedPrice(discount);
+
+        assertThat(discounted).isEqualTo(130.0);
+    }
 }
