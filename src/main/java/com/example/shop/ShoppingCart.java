@@ -165,4 +165,12 @@ public class ShoppingCart {
         quantities.clear();
         products.clear();
     }
+
+    @Override
+    public String toString() {
+        if (isEmpty()) {
+            return "ShoppingCart[empty]";
+        }
+        return String.format("Cart with %d items (%.2f kr)", getItemCount(), getTotalPrice());
+    }
 }
