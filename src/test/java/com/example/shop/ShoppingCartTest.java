@@ -27,4 +27,47 @@ class ShoppingCartTest {
     void newCart_shouldHaveZeroTotalPrice() {
         assertThat(cart.getTotalPrice()).isEqualTo(0.0);
     }
+
+    @Test
+    @DisplayName("Lägg till produkt ska öka antalet i varukorgen")
+    void addProduct_shouldIncreaseItemCount() {
+        Product apple = new Procuct("Apple, 10.0");
+
+        cart.addProduct(apple);
+
+        assertThat(cart.getItemCount()).isEqualTo(1);
+        assertThat(cart.isEmpty()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Lägg till produkt med kvantitet ska lägga till rätt antal")
+    void addProductWithQuantity_shouldAddCorrectAmount() {
+        Product apple = new Product("Apple", 10.0);
+
+        cart.addProduct(apple, 3);
+
+        assertThat(cart.getItemCount()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("Lägga till samma produkt flera gånger ska summera kvantiteter")
+    void addSameProductTwice_shouldSumQuantities() {
+        Product apple = new Product("Apple", 10.0);
+
+        cart.addProduct(apple, 2);
+        cart.addProduct(apple, 3);
+
+        assertThat(cart.getItemCount()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("Hämta kvantitet ska returnera korrekt antal")
+    void getQuantity_shouldReturnCorrectAmount() {
+        Product apple = new Product("Apple", 10.0);
+
+        cart.addProduct(apple, 3);
+        int quantity = cart.getQuantity(apple);
+
+        assertThat(quantity).isEqualTo(3);
+    }
 }
