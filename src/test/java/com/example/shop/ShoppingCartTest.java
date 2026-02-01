@@ -31,7 +31,7 @@ class ShoppingCartTest {
     @Test
     @DisplayName("Lägg till produkt ska öka antalet i varukorgen")
     void addProduct_shouldIncreaseItemCount() {
-        Product apple = new Procuct("Apple, 10.0");
+        Product apple = new Product("Apple", 10.0);
 
         cart.addProduct(apple);
 

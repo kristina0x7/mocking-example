@@ -1,8 +1,6 @@
 package com.example.shop;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class ShoppingCart {
     private final Map<UUID, Integer> quantities;
@@ -32,5 +30,35 @@ public class ShoppingCart {
                     return product.getPrice() * quantity;
                 })
                 .sum();
+    }
+
+    public void addProduct(Product product) {
+        addProduct(product, 1);
+    }
+
+    public void addProduct(Product product, int quantity) {
+        Objects.requireNonNull(product, "Product cannot be null");
+
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+
+        UUID productId = product.getId();
+        products.putIfAbsent(productId, product);
+        quantities.merge(productId, quantity, Integer::sum);
+    }
+
+    public int getQuantity(Product product) {
+        Objects.requireNonNull(product, "Product cannot be null");
+        return quantities.getOrDefault(product.getId(), 0);
+    }
+
+    public boolean containsProduct(Product product) {
+        Objects.requireNonNull(product, "Product cannot be null");
+        return quantities.containsKey(product.getId());
+    }
+
+    public Optional<Product> getProductById(UUID productId) {
+        return Optional.ofNullable(products.get(productId));
     }
 }
