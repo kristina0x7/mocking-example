@@ -158,6 +158,17 @@ public class ShoppingCart {
         return new HashMap<>(quantities);
     }
 
+    public Map<Product, Integer> getProductsWithQuantities() {
+        Map<Product, Integer> result = new HashMap<>();
+        for (Map.Entry<UUID, Integer> entry : quantities.entrySet()) {
+            Product product = products.get(entry.getKey());
+            if (product != null) {
+                result.put(product, entry.getValue());
+            }
+        }
+        return Map.copyOf(result);
+    }
+
     public void clear() {
         quantities.clear();
         products.clear();
