@@ -100,4 +100,69 @@ public class ShoppingCart {
         }
         return discount.apply(total);
     }
+
+    public void updateQuantity(Product product, int newQuantity) {
+        Objects.requireNonNull(product, "Product cannot be null");
+
+        if (newQuantity <= 0) {
+            throw new CartException("Quantity must be positive");
+        }
+
+        UUID productId = product.getId();
+        if (!quantities.containsKey(productId)) {
+            throw new CartException("Product not found in cart: " + product.getName());
+        }
+        quantities.put(productId, newQuantity);
+    }
+
+    public void increaseQuantity(Product product, int amount) {
+        Objects.requireNonNull(product, "Product cannot be null");
+
+        if (amount <= 0) {
+            throw new CartException("Increase amount must be positive");
+        }
+
+        UUID productId = product.getId();
+        if (!quantities.containsKey(productId)) {
+            throw new CartException("Product not found in cart: " + product.getName());
+        }
+        quantities.put(productId, quantities.get(productId) + amount);
+    }
+
+    public void decreaseQuantity(Product product, int amount) {
+        Objects.requireNonNull(product, "Product cannot be null");
+
+        if (amount <= 0) {
+            throw new CartException("Decrease amount must be positive");
+        }
+
+        UUID productId = product.getId();
+        Integer current = quantities.get(productId);
+
+        if (current == null) {
+            throw new CartException("Product not found in cart: " + product.getName());
+        }
+
+        if (amount > current) {
+            throw new CartException(
+                    "Cannot decrease by " + amount + ", only " + current + " items of " + product.getName() + " in cart"
+            );
+        }
+
+        if (amount == current) {
+            quantities.remove(productId);
+            products.remove(productId);
+        } else {
+            quantities.put(productId, current - amount);
+        }
+    }
+
+    public Map<UUID, Integer> getItems() {
+        return new HashMap<>(quantities);
+    }
+
+    public void clear() {
+        quantities.clear();
+        products.clear();
+    }
 }
