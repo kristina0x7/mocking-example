@@ -92,4 +92,12 @@ public class ShoppingCart {
             quantities.put(productId, current - quantity);
         }
     }
+
+    public double getDiscountedPrice(Discount discount) {
+        double total = getTotalPrice();
+        if (discount == null) {
+            return total;
+        }
+        return discount.apply(total);
+    }
 }
