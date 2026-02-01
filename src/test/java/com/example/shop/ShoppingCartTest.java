@@ -193,4 +193,26 @@ class ShoppingCartTest {
         assertThat(items.get(apple.getId())).isEqualTo(2);
         assertThat(items.get(banana.getId())).isEqualTo(3);
     }
+
+    @Test
+    @DisplayName("Ska returnera korrekt produkt-kvantitet mapping med immutable map")
+    void getProductsWithQuantities_shouldReturnCorrectProductQuantityMapping() {
+        Product apple = new Product("Apple", 10.0);
+        Product banana = new Product("Banana", 15.0);
+
+        cart.addProduct(apple, 2);
+        cart.addProduct(banana, 3);
+
+        Map<Product, Integer> items = cart.getProductsWithQuantities();
+
+        assertThat(items)
+                .hasSize(2)
+                .containsEntry(apple, 2)
+                .containsEntry(banana, 3)
+                .isUnmodifiable();
+
+        int totalItems = items.values().stream().mapToInt(Integer::intValue).sum();
+        assertThat(totalItems).isEqualTo(5);
+        assertThat(cart.getItemCount()).isEqualTo(5);
+    }
 }

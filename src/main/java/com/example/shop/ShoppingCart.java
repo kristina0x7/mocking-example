@@ -23,12 +23,9 @@ public class ShoppingCart {
 
     public double getTotalPrice() {
         return quantities.entrySet().stream()
-                .mapToDouble(entry -> {
-                    UUID productId = entry.getKey();
-                    Product product = products.get(productId);
-                    int quantity = entry.getValue();
-                    return product.getPrice() * quantity;
-                })
+                .mapToDouble(entry ->
+                        products.get(entry.getKey()).getPrice() * entry.getValue()
+                )
                 .sum();
     }
 
