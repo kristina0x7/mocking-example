@@ -2,25 +2,35 @@ package com.example.shop;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class ShoppingCart {
-    private final Map<Product, Integer> items;
+    private final Map<UUID, Integer> quantities;
+    private final Map<UUID, Product> products;
 
     public ShoppingCart() {
-        this.items = new HashMap<>();
+        this.quantities = new HashMap<>();
+        this.products = new HashMap<>();
     }
 
     public boolean isEmpty() {
-        return items.isEmpty();
+        return quantities.isEmpty();
     }
 
     public int getItemCount() {
-        return items.values().stream()
+        return quantities.values().stream()
                 .mapToInt(Integer::intValue)
                 .sum();
     }
 
     public double getTotalPrice() {
-        return 0.0;
+        return quantities.entrySet().stream()
+                .mapToDouble(entry -> {
+                    UUID productId = entry.getKey();
+                    Product product = products.get(productId);
+                    int quantity = entry.getValue();
+                    return product.getPrice() * quantity;
+                })
+                .sum();
     }
 }
