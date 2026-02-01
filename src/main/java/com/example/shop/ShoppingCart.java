@@ -61,4 +61,35 @@ public class ShoppingCart {
     public Optional<Product> getProductById(UUID productId) {
         return Optional.ofNullable(products.get(productId));
     }
+
+    public void removeProduct(Product product) {
+        removeProduct(product, 1);
+    }
+
+    public void removeProduct(Product product, int quantity) {
+        Objects.requireNonNull(product, "Product cannot be null");
+
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+
+        UUID productId = product.getId();
+        Integer current = quantities.get(productId);
+
+        if (current == null) {
+            throw new IllegalArgumentException("Product not found in cart: " + product.getName());
+        }
+
+        if (current < quantity) {
+            throw new IllegalArgumentException(
+                    "Cannot remove " + quantity + " of " + product.getName() + ", only " + current + " in cart"
+            );
+        }
+        if (current == quantity) {
+            quantities.remove(productId);
+            products.remove(productId);
+        } else {
+            quantities.put(productId, current - quantity);
+        }
+    }
 }
