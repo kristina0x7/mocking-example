@@ -4,6 +4,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -138,5 +141,55 @@ class ShoppingCartTest {
         double discounted = cart.getDiscountedPrice(discount);
 
         assertThat(discounted).isEqualTo(130.0);
+    }
+
+    @Test
+    @DisplayName("Uppdatera kvantitet ska sätta nytt antal för produkt")
+    void updateQuantity_shouldChangeQuantity() {
+        Product apple = new Product("Apple", 10.0);
+        cart.addProduct(apple, 2);
+
+        cart.updateQuantity(apple, 5);
+
+        assertThat(cart.getQuantity(apple)).isEqualTo(5);
+        assertThat(cart.getItemCount()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("Öka kvantitet ska lägga till angivet antal")
+    void increaseQuantity_shouldAddAmount() {
+        Product apple = new Product("Apple", 10.0);
+        cart.addProduct(apple, 2);
+
+        cart.increaseQuantity(apple, 3);
+
+        assertThat(cart.getQuantity(apple)).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("Minska kvantitet ska dra bort angivet antal")
+    void decreaseQuantity_shouldSubtractAmount() {
+        Product apple = new Product("Apple", 10.0);
+        cart.addProduct(apple, 5);
+
+        cart.decreaseQuantity(apple, 2);
+
+        assertThat(cart.getQuantity(apple)).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("Hämta varukorgens innehåll ska returnera alla produkter med rätt kvantitet")
+    void getItems_shouldReturnAllProducts() {
+        Product apple = new Product("Apple", 10.0);
+        Product banana = new Product("Banana", 15.0);
+
+        cart.addProduct(apple, 2);
+        cart.addProduct(banana, 3);
+
+        Map<UUID, Integer> items = cart.getItems();
+
+        assertThat(items).hasSize(2);
+        assertThat(items.get(apple.getId())).isEqualTo(2);
+        assertThat(items.get(banana.getId())).isEqualTo(3);
     }
 }
