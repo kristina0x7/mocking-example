@@ -40,7 +40,7 @@ public class ShoppingCart {
         Objects.requireNonNull(product, "Product cannot be null");
 
         if (quantity <= 0) {
-            throw new IllegalArgumentException("Quantity must be positive");
+            throw new CartException("Quantity must be positive");
         }
 
         UUID productId = product.getId();
@@ -70,18 +70,18 @@ public class ShoppingCart {
         Objects.requireNonNull(product, "Product cannot be null");
 
         if (quantity <= 0) {
-            throw new IllegalArgumentException("Quantity must be positive");
+            throw new CartException("Quantity must be positive");
         }
 
         UUID productId = product.getId();
         Integer current = quantities.get(productId);
 
         if (current == null) {
-            throw new IllegalArgumentException("Product not found in cart: " + product.getName());
+            throw new CartException("Product not found in cart: " + product.getName());
         }
 
         if (current < quantity) {
-            throw new IllegalArgumentException(
+            throw new CartException(
                     "Cannot remove " + quantity + " of " + product.getName() + ", only " + current + " in cart"
             );
         }

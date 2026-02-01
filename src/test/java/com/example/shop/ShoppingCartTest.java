@@ -108,11 +108,11 @@ class ShoppingCartTest {
 
     @Test
     @DisplayName("Försök att ta bort produkt som inte finns ska kasta exception")
-    void removeProductThatDoesntExist_shouldThrowException() {
+    void removeProductThatDoesntExist_shouldThrowCartException() {
         Product apple = new Product("Apple", 10.0);
 
         assertThatThrownBy(() -> cart.removeProduct(apple))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(CartException.class)
                 .hasMessageContaining("not found");
     }
 }
