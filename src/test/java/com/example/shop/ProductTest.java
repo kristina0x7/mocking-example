@@ -24,10 +24,10 @@ class ProductTest {
     }
 
     @Test
-    @DisplayName("Skapa produkt med null ID ska kasta exception")
+    @DisplayName("Skapa produkt med null UUID ska kasta exception")
     void createProduct_withNullId_shouldThrowException() {
         assertThatThrownBy(() -> new Product((UUID) null, "Apple", 10.0))
-                .isInstanceOf(IllegalArgumentException.class);
-        .hasMessageContaining("D cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("id cannot be null");
     }
 }
