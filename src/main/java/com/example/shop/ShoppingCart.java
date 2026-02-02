@@ -40,7 +40,6 @@ public class ShoppingCart {
         if (quantity <= 0) {
             throw new CartException("Quantity must be positive");
         }
-
         UUID productId = product.getId();
         products.putIfAbsent(productId, product);
         quantities.merge(productId, quantity, Integer::sum);
@@ -70,13 +69,10 @@ public class ShoppingCart {
         if (quantity <= 0) {
             throw new CartException("Quantity must be positive");
         }
-
         UUID productId = product.getId();
         Integer current = quantities.get(productId);
 
-        if (current == null) {
-            throw new CartException("Product not found in cart: " + product.getName());
-        }
+        if (current == null) {throw new CartException("Product not found in cart: " + product.getName());}
 
         if (current < quantity) {
             throw new CartException(
@@ -101,10 +97,7 @@ public class ShoppingCart {
 
     public void updateQuantity(Product product, int newQuantity) {
         Objects.requireNonNull(product, "Product cannot be null");
-
-        if (newQuantity <= 0) {
-            throw new CartException("Quantity must be positive");
-        }
+        if (newQuantity <= 0) {throw new CartException("Quantity must be positive");}
 
         UUID productId = product.getId();
         if (!quantities.containsKey(productId)) {
@@ -115,10 +108,7 @@ public class ShoppingCart {
 
     public void increaseQuantity(Product product, int amount) {
         Objects.requireNonNull(product, "Product cannot be null");
-
-        if (amount <= 0) {
-            throw new CartException("Increase amount must be positive");
-        }
+        if (amount <= 0) {throw new CartException("Increase amount must be positive");}
 
         UUID productId = product.getId();
         if (!quantities.containsKey(productId)) {
@@ -129,17 +119,12 @@ public class ShoppingCart {
 
     public void decreaseQuantity(Product product, int amount) {
         Objects.requireNonNull(product, "Product cannot be null");
-
-        if (amount <= 0) {
-            throw new CartException("Decrease amount must be positive");
-        }
+        if (amount <= 0) {throw new CartException("Decrease amount must be positive");}
 
         UUID productId = product.getId();
         Integer current = quantities.get(productId);
 
-        if (current == null) {
-            throw new CartException("Product not found in cart: " + product.getName());
-        }
+        if (current == null) {throw new CartException("Product not found in cart: " + product.getName());}
 
         if (amount > current) {
             throw new CartException(
@@ -177,9 +162,7 @@ public class ShoppingCart {
 
     @Override
     public String toString() {
-        if (isEmpty()) {
-            return "ShoppingCart[empty]";
-        }
-        return String.format("Cart with %d items (%.2f kr)", getItemCount(), getTotalPrice());
+        if (isEmpty()) return "ShoppingCart[empty]";
+        return "ShoppingCart: " + getProductsWithQuantities();
     }
 }
