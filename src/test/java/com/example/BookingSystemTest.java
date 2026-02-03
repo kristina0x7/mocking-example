@@ -178,16 +178,7 @@ class BookingSystemTest {
         }
 
         @Test
-        @DisplayName("När bokning lyckas - spara rum i repository")
-        void bookRoom_Successful_SavesRoomToRepository() {
-            boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
-
-            assertThat(result).isTrue();
-            verify(roomRepository).save(firstRoom);
-        }
-
-        @Test
-        @DisplayName("När bokning lyckas - lägg till bokning i rum")
+        @DisplayName("När bokning lyckas - lägg till bokning i rum och spara")
         void bookRoom_Successful_AddsBookingToRoom() throws NotificationException {
             boolean result = bookingSystem.bookRoom(ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
