@@ -22,9 +22,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class BookingSystemTest {
 
-    private static final String ROOM_ID_1 = "123";
-    private static final String ROOM_ID_2 = "456";
-    private static final String ROOM_ID_3 = "789";
+    private static final String ROOM_ID_1 = "000";
+    private static final String ROOM_ID_2 = "001";
+    private static final String ROOM_ID_3 = "011";
     private static final String ROOM_NAME_1 = "room-A";
     private static final String ROOM_NAME_2 = "room-B";
     private static final String ROOM_NAME_3 = "room-C";

@@ -31,7 +31,7 @@ class PaymentProcessorTest {
 
     private static final String VALID_EMAIL = "name@example.com";
     private static final double VALID_AMOUNT = 100.50;
-    private static final String VALID_TRANSACTION_ID = "id_111222333";
+    private static final String VALID_TRANSACTION_ID = "id_0000000000";
 
     private void stubSuccessfulPayment() throws PaymentProcessingException {
         PaymentApiResponse response = new PaymentApiResponse(true, VALID_TRANSACTION_ID);
@@ -183,12 +183,10 @@ class PaymentProcessorTest {
             stubSuccessfulPayment();
             PaymentDataAccessException repoEx = new PaymentDataAccessException("DB error");
             doThrow(repoEx).when(paymentRepository).savePayment(VALID_AMOUNT, PaymentStatus.COMPLETED, VALID_TRANSACTION_ID);
-
             assertThatThrownBy(() -> pay())
                     .isInstanceOf(PaymentProcessingException.class)
                     .hasMessage("Failed to save payment")
                     .hasCause(repoEx);
-
             verify(emailSender, never()).sendPaymentConfirmation(anyString(), anyDouble());
         }
 
@@ -196,7 +194,6 @@ class PaymentProcessorTest {
         void emailThrows_PaymentStillSuccessful() throws Exception {
             stubSuccessfulPayment();
             doThrow(new EmailSendingException("error")).when(emailSender).sendPaymentConfirmation(VALID_EMAIL, VALID_AMOUNT);
-
             assertThat(pay()).isTrue();
             verifyPaymentSaved();
         }
@@ -205,7 +202,6 @@ class PaymentProcessorTest {
         void apiThrows_BubblesUp() throws PaymentProcessingException {
             PaymentProcessingException apiEx = new PaymentProcessingException("API failed");
             when(paymentApiClient.charge(VALID_AMOUNT)).thenThrow(apiEx);
-
             assertThatThrownBy(() -> pay()).isSameAs(apiEx);
             verifyNoInteractions(paymentRepository, emailSender);
         }
