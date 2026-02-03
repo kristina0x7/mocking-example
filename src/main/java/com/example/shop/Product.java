@@ -11,28 +11,19 @@ public class Product {
     public Product(UUID id, String name, double price) {
         this.id = Objects.requireNonNull(id, "id cannot be null");
         this.name = Objects.requireNonNull(name, "name cannot be null");
-        if (name.trim().isEmpty()) {
-            throw new IllegalArgumentException("name cannot be empty or blank");
-        }
-
-        if (price < 0) {
-            throw new IllegalArgumentException("price cannot be negative: " + price);
-        }
+        if (name.trim().isEmpty()) {throw new IllegalArgumentException("name cannot be empty or blank");}
+        if (price < 0) {throw new IllegalArgumentException("price cannot be negative: " + price);}
         this.price = price;
     }
 
-    public Product(String name, double price) {
-        this(UUID.randomUUID(), name, price);
-    }
+    public Product(String name, double price) {this(UUID.randomUUID(), name, price);}
 
     public UUID getId() {
         return id;
     }
-
     public String getName() {
         return name;
     }
-
     public double getPrice() {
         return price;
     }
@@ -46,9 +37,7 @@ public class Product {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+    public int hashCode() {return Objects.hash(id);}
 
     @Override
     public String toString() {

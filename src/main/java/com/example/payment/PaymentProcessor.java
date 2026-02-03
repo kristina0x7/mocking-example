@@ -22,7 +22,10 @@ public class PaymentProcessor {
 
         PaymentApiResponse response = paymentApiClient.charge(amount);
 
-        if (response.isSuccess()) {
+        if (!response.isSuccess()) {
+            return false;
+        }
+
             try {
                 paymentRepository.savePayment(amount, PaymentStatus.COMPLETED, response.transactionId());
             } catch (PaymentDataAccessException e) {
@@ -36,8 +39,5 @@ public class PaymentProcessor {
                 // Fortsätt
             }
             return true;
-        } else {
-            return false;
         }
     }
-}

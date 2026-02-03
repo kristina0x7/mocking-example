@@ -7,7 +7,6 @@ public class PaymentApi {
         if (apiKey == null || apiKey.isBlank() || !apiKey.startsWith("sk_") || amount <= 0) {
             return PaymentApiResponse.failure();
         }
-
         return PaymentApiResponse.success("test-txn-123");
     }
 }
