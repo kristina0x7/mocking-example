@@ -195,6 +195,8 @@ class BookingSystemTest {
 
             verify(roomRepository).save(firstRoom);
             verify(notificationService).sendBookingConfirmation(any(Booking.class));
+
+            assertThat(firstRoom.isAvailable(FUTURE_START_TIME, FUTURE_END_TIME)).isFalse();
         }
 
         @Test
