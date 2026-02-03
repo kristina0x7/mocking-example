@@ -85,11 +85,23 @@
                     </execution>
                 </executions>
             </plugin>
-                <plugin>
-                    <groupId>org.pitest</groupId>
-                    <artifactId>pitest-maven</artifactId>
-                    <version>1.22.0</version>
-                </plugin>
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.22.0</version>
+                <configuration>
+                    <targetClasses>
+                        <param>com.example.payment.PaymentProcessor</param>
+                        <param>com.example.shop.ShoppingCart</param>
+                        <param>com.example.BookingSystem</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>com.example.payment.PaymentProcessorTest</param>
+                        <param>com.example.shop.ShoppingCartTest</param>
+                        <param>com.example.BookingSystemTest</param>
+                    </targetTests>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
