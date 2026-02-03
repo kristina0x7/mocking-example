@@ -33,7 +33,7 @@ class BookingSystemTest {
     private static final String ONGOING_BOOKING_ID = "ongoing-booking";
     private static final String BOOKING_ID_1 = "future-booking-1";
     private static final String BOOKING_ID_2 = "future-booking-2";
-    private static final String BOOKING_ID_3 = "FUTURE-booking-3";
+    private static final String BOOKING_ID_3 = "future-booking-3";
     private static final String NON_EXISTING_BOOKING_ID = "non-existing-booking";
 
     private static final LocalDateTime CURRENT_TIME = LocalDateTime.of(2026, 1, 7, 9, 0);
