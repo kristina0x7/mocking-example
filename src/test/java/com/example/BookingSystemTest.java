@@ -55,8 +55,7 @@ class BookingSystemTest {
     }
 
     @Nested
-    @DisplayName("bookRoom")
-    class BookRoomTests {
+    class BookRoom {
         private Room firstRoom;
 
         @BeforeEach
@@ -138,8 +137,7 @@ class BookingSystemTest {
 
 
     @Nested
-    @DisplayName("getAvailableRooms")
-    class GetAvailableRoomsTests {
+    class GetAvailableRooms {
         private Room firstRoom;
         private Room secondRoom;
 
@@ -182,8 +180,7 @@ class BookingSystemTest {
 
 
         @Nested
-        @DisplayName("cancelBooking")
-        class CancelBookingTests {
+        class CancelBooking {
             private Room firstRoom;
             private Room secondRoom;
             private Room thirdRoom;
