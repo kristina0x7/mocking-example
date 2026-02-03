@@ -67,7 +67,7 @@ class BookingSystemTest {
 
         @ParameterizedTest
         @MethodSource("bookRoomNullTestCases")
-        void bookRoom_NullParams_Throws(String roomId, LocalDateTime startTime, LocalDateTime endTime) {
+        void nullParams_Throws(String roomId, LocalDateTime startTime, LocalDateTime endTime) {
             assertThatThrownBy(() -> bookingSystem.bookRoom(roomId, startTime, endTime))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Bokning kräver giltiga start- och sluttider samt rum-id");
@@ -86,21 +86,21 @@ class BookingSystemTest {
         }
 
         @Test
-        void bookRoom_StartInPast_Throws() {
+        void startInPast_Throws() {
             assertThatThrownBy(() -> bookingSystem.bookRoom(ROOM_ID_1, PAST_TIME, FUTURE_END_TIME))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Kan inte boka tid i dåtid");
         }
 
         @Test
-        void bookRoom_EndBeforeStart_Throws() {
+        void endBeforeStart_Throws() {
             assertThatThrownBy(() -> bookingSystem.bookRoom(ROOM_ID_1, FUTURE_START_TIME, PAST_TIME))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Sluttid måste vara efter starttid");
         }
 
         @Test
-        void bookRoom_RoomNotFound_Throws() {
+        void roomNotFound_Throws() {
             when(roomRepository.findById(ROOM_ID_1)).thenReturn(Optional.empty());
             assertThatThrownBy(() -> bookingSystem.bookRoom(ROOM_ID_1, FUTURE_START_TIME, FUTURE_END_TIME))
                     .isInstanceOf(IllegalArgumentException.class)
@@ -108,7 +108,7 @@ class BookingSystemTest {
         }
 
         @Test
-        void bookRoom_RoomUnavailable_ReturnsFalse() {
+        void roomUnavailable_ReturnsFalse() {
             firstRoom.addBooking(createBooking(FUTURE_BOOKING_ID, ROOM_ID_1, FUTURE_START_TIME, FUTURE_END_TIME));
             boolean result = bookingSystem.bookRoom(ROOM_ID_1, FUTURE_START_TIME, FUTURE_END_TIME);
             assertThat(result).isFalse();
@@ -116,7 +116,7 @@ class BookingSystemTest {
         }
 
         @Test
-        void bookRoom_Success_ReturnsTrueAndSavesRoom() throws NotificationException {
+        void success_ReturnsTrueAndSavesRoom() throws NotificationException {
             boolean result = bookingSystem.bookRoom(ROOM_ID_1, FUTURE_START_TIME, FUTURE_END_TIME);
             assertThat(result).isTrue();
             assertThat(firstRoom.isAvailable(FUTURE_START_TIME, FUTURE_END_TIME)).isFalse();
@@ -125,7 +125,7 @@ class BookingSystemTest {
         }
 
         @Test
-        void bookRoom_Success_EvenIfNotificationFails() throws NotificationException {
+        void success_EvenIfNotificationFails() throws NotificationException {
             doThrow(new NotificationException("Fail"))
                     .when(notificationService).sendBookingConfirmation(any());
             boolean result = bookingSystem.bookRoom(ROOM_ID_1, FUTURE_START_TIME, FUTURE_END_TIME);
@@ -149,7 +149,7 @@ class BookingSystemTest {
 
         @ParameterizedTest
         @MethodSource("nullTimeCases")
-        void getAvailableRooms_NullParams_Throws(LocalDateTime startTime, LocalDateTime endTime) {
+        void nullParams_Throws(LocalDateTime startTime, LocalDateTime endTime) {
             assertThatThrownBy(() -> bookingSystem.getAvailableRooms(startTime, endTime))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Måste ange både start- och sluttid");
@@ -164,14 +164,14 @@ class BookingSystemTest {
         }
 
         @Test
-        void getAvailableRooms_EndBeforeStart_Throws() {
+        void EndBeforeStart_Throws() {
             assertThatThrownBy(() -> bookingSystem.getAvailableRooms(FUTURE_END_TIME, FUTURE_START_TIME))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Sluttid måste vara efter starttid");
         }
 
         @Test
-        void getAvailableRooms_FiltersAvailableRooms() {
+        void filtersAvailableRooms() {
             secondRoom.addBooking(createBooking(FUTURE_BOOKING_ID, ROOM_ID_2, FUTURE_START_TIME, FUTURE_END_TIME));
             when(roomRepository.findAll()).thenReturn(List.of(firstRoom, secondRoom));
             List<Room> available = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
@@ -194,14 +194,14 @@ class BookingSystemTest {
             }
 
             @Test
-            void cancelBooking_NullId_Throws() {
+            void nullId_Throws() {
                 assertThatThrownBy(() -> bookingSystem.cancelBooking(null))
                         .isInstanceOf(IllegalArgumentException.class)
                         .hasMessage("Boknings-id kan inte vara null");
             }
 
             @Test
-            void cancelBooking_NoMatch_ReturnsFalse() throws NotificationException {
+            void noMatch_ReturnsFalse() throws NotificationException {
                 mockAllRooms(firstRoom, secondRoom, thirdRoom);
                 boolean result = bookingSystem.cancelBooking(NON_EXISTING_BOOKING_ID);
                 assertThat(result).isFalse();
@@ -211,7 +211,7 @@ class BookingSystemTest {
             }
 
             @Test
-            void cancelBooking_FutureBooking_Success() throws NotificationException {
+            void futureBooking_Success() throws NotificationException {
                 Booking b1 = createBooking(FUTURE_BOOKING_ID, ROOM_ID_1, FUTURE_START_TIME, FUTURE_END_TIME);
                 addBooking(firstRoom, b1);
                 mockAllRooms(firstRoom, secondRoom, thirdRoom);
@@ -223,7 +223,7 @@ class BookingSystemTest {
             }
 
             @Test
-            void cancelBooking_FutureBooking_NotificationFails_StillReturnsTrue() throws NotificationException {
+            void notificationFails_StillReturnsTrue() throws NotificationException {
                 Booking b1 = createBooking(FUTURE_BOOKING_ID, ROOM_ID_1, FUTURE_START_TIME, FUTURE_END_TIME);
                 addBooking(firstRoom, b1);
                 mockAllRooms(firstRoom);
@@ -237,7 +237,7 @@ class BookingSystemTest {
             }
 
             @Test
-            void cancelBooking_OngoingBooking_Throws() throws NotificationException {
+            void ongoingBooking_Throws() throws NotificationException {
                 Booking ongoing = createBooking(ONGOING_BOOKING_ID, ROOM_ID_1, PAST_TIME, FUTURE_END_TIME);
                 addBooking(firstRoom, ongoing);
                 mockAllRooms(firstRoom, secondRoom, thirdRoom);
