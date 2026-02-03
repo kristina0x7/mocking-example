@@ -62,8 +62,6 @@ class BookingSystemTest {
     @DisplayName("Förbered testdata och mock-inställningar")
     void setUp() {
         firstRoom = new Room(ROOM_ID, ROOM_NAME);
-        secondRoom = new Room(SECOND_ROOM_ID, SECOND_ROOM_NAME);
-        thirdRoom = new Room(THIRD_ROOM_ID, THIRD_ROOM_NAME);
 
         Mockito.lenient().when(timeProvider.getCurrentTime()).thenReturn(CURRENT_TIME);
         Mockito.lenient().when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(firstRoom));
@@ -256,291 +254,306 @@ class BookingSystemTest {
     @DisplayName("getAvailableRooms metoden")
     class GetAvailableRoomsTests {
 
-        @ParameterizedTest
-        @MethodSource("getAvailableRoomsNullTestCases")
-        @DisplayName("När start- eller sluttid är null - kasta IllegalArgumentException")
-        void getAvailableRooms_WithNullParameters_ThrowsException(
-                LocalDateTime startTime, LocalDateTime endTime) {
+        @BeforeEach
+        void setUp() {
+            firstRoom = new Room(ROOM_ID, ROOM_NAME);
+            secondRoom = new Room(SECOND_ROOM_ID, SECOND_ROOM_NAME);
+            }
 
-            assertThatThrownBy(() -> bookingSystem.getAvailableRooms(startTime, endTime))
-                    .as("Testar getAvailableRooms med: startTime=%s, endTime=%s",
-                            startTime, endTime)
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("Måste ange både start- och sluttid");
+            @ParameterizedTest
+            @MethodSource("getAvailableRoomsNullTestCases")
+            @DisplayName("När start- eller sluttid är null - kasta IllegalArgumentException")
+            void getAvailableRooms_WithNullParameters_ThrowsException (
+                    LocalDateTime startTime, LocalDateTime endTime){
+
+                assertThatThrownBy(() -> bookingSystem.getAvailableRooms(startTime, endTime))
+                        .as("Testar getAvailableRooms med: startTime=%s, endTime=%s",
+                                startTime, endTime)
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessage("Måste ange både start- och sluttid");
+            }
+
+            static Stream<Arguments> getAvailableRoomsNullTestCases () {
+                return Stream.of(
+                        Arguments.of(null, FUTURE_END_TIME),
+                        Arguments.of(FUTURE_START_TIME, null),
+                        Arguments.of(null, null)
+                );
+            }
+
+            @Test
+            @DisplayName("När sluttid är före starttid - kasta exception")
+            void getAvailableRooms_WithEndTimeBeforeStart_ThrowsException () {
+                assertThatThrownBy(() -> bookingSystem.getAvailableRooms(FUTURE_END_TIME, FUTURE_START_TIME))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessage("Sluttid måste vara efter starttid");
+            }
+
+            @Test
+            @DisplayName("Anropar roomRepository.findAll() för att hämta alla rum")
+            void getAvailableRooms_CallsRepositoryFindAll () {
+
+                when(roomRepository.findAll()).thenReturn(Collections.emptyList());
+
+                bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
+
+                verify(roomRepository).findAll();
+            }
+
+            @Test
+            @DisplayName("Returnerar filtrerad lista på lediga rum under angiven tid")
+            void getAvailableRooms_ReturnsFilteredList () {
+                secondRoom.addBooking(new Booking(
+                        "test-uuid-123",
+                        SECOND_ROOM_ID,
+                        FUTURE_START_TIME,
+                        FUTURE_END_TIME
+                ));
+
+                when(roomRepository.findAll()).thenReturn(Arrays.asList(firstRoom, secondRoom));
+
+                List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
+
+                assertThat(result)
+                        .hasSize(1)
+                        .containsExactly(firstRoom)
+                        .doesNotContain(secondRoom);
+            }
+
+            @Test
+            @DisplayName("När repository är tomt - returnerar tom lista")
+            void getAvailableRooms_WithEmptyRepository_ReturnsEmptyList () {
+                when(roomRepository.findAll()).thenReturn(Collections.emptyList());
+
+                List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
+
+                assertThat(result).isEmpty();
+            }
+
+            @Test
+            @DisplayName("När alla rum är lediga - returnerar alla rum")
+            void getAvailableRooms_WithBothRoomsAvailable_ReturnsBoth () {
+                when(roomRepository.findAll()).thenReturn(Arrays.asList(firstRoom, secondRoom));
+
+                List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
+
+                assertThat(result)
+                        .hasSize(2)
+                        .containsExactlyInAnyOrder(firstRoom, secondRoom);
+            }
+
+            @Test
+            @DisplayName("När alla rum är upptagna - returnerar tom lista")
+            void getAvailableRooms_WithBothRoomsBooked_ReturnsEmpty () {
+                firstRoom.addBooking(new Booking("b1", ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
+                secondRoom.addBooking(new Booking("b2", SECOND_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
+
+                when(roomRepository.findAll()).thenReturn(Arrays.asList(firstRoom, secondRoom));
+
+                List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
+
+                assertThat(result).isEmpty();
+            }
         }
-
-        static Stream<Arguments> getAvailableRoomsNullTestCases() {
-            return Stream.of(
-                    Arguments.of(null, FUTURE_END_TIME),
-                    Arguments.of(FUTURE_START_TIME, null),
-                    Arguments.of(null, null)
-            );
-        }
-
-        @Test
-        @DisplayName("När sluttid är före starttid - kasta exception")
-        void getAvailableRooms_WithEndTimeBeforeStart_ThrowsException() {
-            assertThatThrownBy(() -> bookingSystem.getAvailableRooms(FUTURE_END_TIME, FUTURE_START_TIME))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("Sluttid måste vara efter starttid");
-        }
-
-        @Test
-        @DisplayName("Anropar roomRepository.findAll() för att hämta alla rum")
-        void getAvailableRooms_CallsRepositoryFindAll() {
-
-            when(roomRepository.findAll()).thenReturn(Collections.emptyList());
-
-            bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
-
-            verify(roomRepository).findAll();
-        }
-
-        @Test
-        @DisplayName("Returnerar filtrerad lista på lediga rum under angiven tid")
-        void getAvailableRooms_ReturnsFilteredList() {
-            secondRoom.addBooking(new Booking(
-                    "test-uuid-123",
-                    SECOND_ROOM_ID,
-                    FUTURE_START_TIME,
-                    FUTURE_END_TIME
-            ));
-
-            when(roomRepository.findAll()).thenReturn(Arrays.asList(firstRoom, secondRoom));
-
-            List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
-
-            assertThat(result)
-                    .hasSize(1)
-                    .containsExactly(firstRoom)
-                    .doesNotContain(secondRoom);
-        }
-
-        @Test
-        @DisplayName("När repository är tomt - returnerar tom lista")
-        void getAvailableRooms_WithEmptyRepository_ReturnsEmptyList() {
-            when(roomRepository.findAll()).thenReturn(Collections.emptyList());
-
-            List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
-
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        @DisplayName("När alla rum är lediga - returnerar alla rum")
-        void getAvailableRooms_WithBothRoomsAvailable_ReturnsBoth() {
-            when(roomRepository.findAll()).thenReturn(Arrays.asList(firstRoom, secondRoom));
-
-            List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
-
-            assertThat(result)
-                    .hasSize(2)
-                    .containsExactlyInAnyOrder(firstRoom, secondRoom);
-        }
-
-        @Test
-        @DisplayName("När alla rum är upptagna - returnerar tom lista")
-        void getAvailableRooms_WithBothRoomsBooked_ReturnsEmpty() {
-            firstRoom.addBooking(new Booking("b1", ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
-            secondRoom.addBooking(new Booking("b2", SECOND_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME));
-
-            when(roomRepository.findAll()).thenReturn(Arrays.asList(firstRoom, secondRoom));
-
-            List<Room> result = bookingSystem.getAvailableRooms(FUTURE_START_TIME, FUTURE_END_TIME);
-
-            assertThat(result).isEmpty();
-        }
-    }
 
     @Nested
     @DisplayName("cancelBooking metoden")
     class CancelBookingTests {
 
-        @Test
-        @DisplayName("När boknings-id är null - kasta IllegalArgumentException")
-        void cancelBooking_WithNullBookingId_ThrowsException() {
-            assertThatThrownBy(() -> bookingSystem.cancelBooking(null))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("Boknings-id kan inte vara null");
+        @BeforeEach
+        void setUp() {
+            firstRoom = new Room(ROOM_ID, ROOM_NAME);
+            secondRoom = new Room(SECOND_ROOM_ID, SECOND_ROOM_NAME);
+            thirdRoom = new Room(THIRD_ROOM_ID, THIRD_ROOM_NAME);
         }
 
-        @Test
-        @DisplayName("Söker genom alla rum från repository men hittar inget matchande boknings-id - returnera false")
-        void cancelBooking_SearchesAllRoomsFromRepository_NoMatchingBookingId_ReturnsFalse() throws NotificationException {
-            List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
-            when(roomRepository.findAll()).thenReturn(allRooms);
+            @Test
+            @DisplayName("När boknings-id är null - kasta IllegalArgumentException")
+            void cancelBooking_WithNullBookingId_ThrowsException () {
+                assertThatThrownBy(() -> bookingSystem.cancelBooking(null))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessage("Boknings-id kan inte vara null");
+            }
 
-            boolean result = bookingSystem.cancelBooking(NON_EXISTING_BOOKING_ID);
+            @Test
+            @DisplayName("Söker genom alla rum från repository men hittar inget matchande boknings-id - returnera false")
+            void cancelBooking_SearchesAllRoomsFromRepository_NoMatchingBookingId_ReturnsFalse () throws
+            NotificationException {
+                List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
+                when(roomRepository.findAll()).thenReturn(allRooms);
 
-            assertThat(result).as("Ska returnera false när bokningen inte finns").isFalse();
-            verify(roomRepository).findAll();
-            verify(roomRepository, never()).save(any(Room.class));
-            verify(notificationService, never()).sendCancellationConfirmation(any(Booking.class));
+                boolean result = bookingSystem.cancelBooking(NON_EXISTING_BOOKING_ID);
 
-            assertThat(firstRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
-            assertThat(secondRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
-            assertThat(thirdRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
-        }
+                assertThat(result).as("Ska returnera false när bokningen inte finns").isFalse();
+                verify(roomRepository).findAll();
+                verify(roomRepository, never()).save(any(Room.class));
+                verify(notificationService, never()).sendCancellationConfirmation(any(Booking.class));
 
-        @Test
-        @DisplayName("När framtida bokning hittas - avboka och returnera true")
-        void cancelBooking_FindsFutureBooking_ReturnsTrueAndCancels() throws NotificationException {
+                assertThat(firstRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
+                assertThat(secondRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
+                assertThat(thirdRoom.hasBooking(NON_EXISTING_BOOKING_ID)).isFalse();
+            }
 
-            Booking futureBooking = new Booking(
-                    FUTURE_BOOKING_ID,
-                    ROOM_ID,
-                    FUTURE_START_TIME,
-                    FUTURE_END_TIME
-            );
-            firstRoom.addBooking(futureBooking);
+            @Test
+            @DisplayName("När framtida bokning hittas - avboka och returnera true")
+            void cancelBooking_FindsFutureBooking_ReturnsTrueAndCancels () throws NotificationException {
 
-            List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
-            when(roomRepository.findAll()).thenReturn(allRooms);
+                Booking futureBooking = new Booking(
+                        FUTURE_BOOKING_ID,
+                        ROOM_ID,
+                        FUTURE_START_TIME,
+                        FUTURE_END_TIME
+                );
+                firstRoom.addBooking(futureBooking);
 
-            boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
+                List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
+                when(roomRepository.findAll()).thenReturn(allRooms);
 
-            assertThat(result).as("Ska returnera true när bokningen hittas och avbokas").isTrue();
-            verify(roomRepository).findAll();
-            verify(roomRepository).save(firstRoom);
-            verify(notificationService).sendCancellationConfirmation(futureBooking);
+                boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
 
-            assertThat(firstRoom.hasBooking((FUTURE_BOOKING_ID))).isFalse();
-        }
+                assertThat(result).as("Ska returnera true när bokningen hittas och avbokas").isTrue();
+                verify(roomRepository).findAll();
+                verify(roomRepository).save(firstRoom);
+                verify(notificationService).sendCancellationConfirmation(futureBooking);
 
-        @Test
-        @DisplayName("När pågående bokning avbokas - kasta IllegalStateException")
-        void cancelBooking_AttemptToCancelOngoingBooking_ThrowsException() throws NotificationException {
-            Booking ongoingBooking = new Booking(
-                    ONGOING_BOOKING_ID,
-                    ROOM_ID,
-                    PAST_TIME,
-                    FUTURE_END_TIME
-            );
-            firstRoom.addBooking(ongoingBooking);
+                assertThat(firstRoom.hasBooking((FUTURE_BOOKING_ID))).isFalse();
+            }
 
-            List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
-            when(roomRepository.findAll()).thenReturn(allRooms);
+            @Test
+            @DisplayName("När pågående bokning avbokas - kasta IllegalStateException")
+            void cancelBooking_AttemptToCancelOngoingBooking_ThrowsException () throws NotificationException {
+                Booking ongoingBooking = new Booking(
+                        ONGOING_BOOKING_ID,
+                        ROOM_ID,
+                        PAST_TIME,
+                        FUTURE_END_TIME
+                );
+                firstRoom.addBooking(ongoingBooking);
 
-            assertThatThrownBy(() -> bookingSystem.cancelBooking(ONGOING_BOOKING_ID))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("Kan inte avboka påbörjad eller avslutad bokning");
+                List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
+                when(roomRepository.findAll()).thenReturn(allRooms);
 
-            verify(roomRepository, never()).save(any(Room.class));
-            verify(notificationService, never()).sendCancellationConfirmation(any(Booking.class));
-            assertThat(firstRoom.hasBooking(ONGOING_BOOKING_ID)).isTrue();
-        }
+                assertThatThrownBy(() -> bookingSystem.cancelBooking(ONGOING_BOOKING_ID))
+                        .isInstanceOf(IllegalStateException.class)
+                        .hasMessage("Kan inte avboka påbörjad eller avslutad bokning");
 
-        @Test
-        @DisplayName("Lyckad avbokning sparar rummet i repository")
-        void cancelBooking_SuccessfulCancellation_SavesRoomToRepository() throws NotificationException {
-            Booking futureBooking = new Booking(
-                    FUTURE_BOOKING_ID,
-                    ROOM_ID,
-                    FUTURE_START_TIME,
-                    FUTURE_END_TIME
-            );
-            firstRoom.addBooking(futureBooking);
+                verify(roomRepository, never()).save(any(Room.class));
+                verify(notificationService, never()).sendCancellationConfirmation(any(Booking.class));
+                assertThat(firstRoom.hasBooking(ONGOING_BOOKING_ID)).isTrue();
+            }
 
-            List<Room> allRooms = List.of(firstRoom);
-            when(roomRepository.findAll()).thenReturn(allRooms);
+            @Test
+            @DisplayName("Lyckad avbokning sparar rummet i repository")
+            void cancelBooking_SuccessfulCancellation_SavesRoomToRepository () throws NotificationException {
+                Booking futureBooking = new Booking(
+                        FUTURE_BOOKING_ID,
+                        ROOM_ID,
+                        FUTURE_START_TIME,
+                        FUTURE_END_TIME
+                );
+                firstRoom.addBooking(futureBooking);
 
-            boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
+                List<Room> allRooms = List.of(firstRoom);
+                when(roomRepository.findAll()).thenReturn(allRooms);
 
-            assertThat(result).isTrue();
-            verify(roomRepository).save(firstRoom);
-            verify(notificationService).sendCancellationConfirmation(futureBooking);
-        }
+                boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
 
-        @Test
-        @DisplayName("Lyckad avbokning skickar notifikation")
-        void cancelBooking_SuccessfulCancellation_SendsNotification() throws NotificationException {
-            Booking futureBooking = new Booking(
-                    FUTURE_BOOKING_ID,
-                    ROOM_ID,
-                    FUTURE_START_TIME,
-                    FUTURE_END_TIME
-            );
-            firstRoom.addBooking(futureBooking);
+                assertThat(result).isTrue();
+                verify(roomRepository).save(firstRoom);
+                verify(notificationService).sendCancellationConfirmation(futureBooking);
+            }
 
-            List<Room> allRooms = List.of(firstRoom);
-            when(roomRepository.findAll()).thenReturn(allRooms);
+            @Test
+            @DisplayName("Lyckad avbokning skickar notifikation")
+            void cancelBooking_SuccessfulCancellation_SendsNotification () throws NotificationException {
+                Booking futureBooking = new Booking(
+                        FUTURE_BOOKING_ID,
+                        ROOM_ID,
+                        FUTURE_START_TIME,
+                        FUTURE_END_TIME
+                );
+                firstRoom.addBooking(futureBooking);
 
-            boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
+                List<Room> allRooms = List.of(firstRoom);
+                when(roomRepository.findAll()).thenReturn(allRooms);
 
-            assertThat(result).isTrue();
-            verify(notificationService).sendCancellationConfirmation(futureBooking);
-        }
+                boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
 
-        @Test
-        @DisplayName("Avbokning lyckas även om notifikation kastar NotificationException")
-        void cancelBooking_WhenNotificationThrowsNotificationException_StillReturnsTrue() throws NotificationException {
-            Booking futureBooking = new Booking(
-                    FUTURE_BOOKING_ID,
-                    ROOM_ID,
-                    FUTURE_START_TIME,
-                    FUTURE_END_TIME
-            );
-            firstRoom.addBooking(futureBooking);
+                assertThat(result).isTrue();
+                verify(notificationService).sendCancellationConfirmation(futureBooking);
+            }
 
-            List<Room> allRooms = List.of(firstRoom);
-            when(roomRepository.findAll()).thenReturn(allRooms);
+            @Test
+            @DisplayName("Avbokning lyckas även om notifikation kastar NotificationException")
+            void cancelBooking_WhenNotificationThrowsNotificationException_StillReturnsTrue () throws
+            NotificationException {
+                Booking futureBooking = new Booking(
+                        FUTURE_BOOKING_ID,
+                        ROOM_ID,
+                        FUTURE_START_TIME,
+                        FUTURE_END_TIME
+                );
+                firstRoom.addBooking(futureBooking);
 
-            doThrow(new NotificationException("Error"))
-                    .when(notificationService)
-                    .sendCancellationConfirmation(futureBooking);
+                List<Room> allRooms = List.of(firstRoom);
+                when(roomRepository.findAll()).thenReturn(allRooms);
 
-            boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
+                doThrow(new NotificationException("Error"))
+                        .when(notificationService)
+                        .sendCancellationConfirmation(futureBooking);
 
-            assertThat(result).isTrue();
-            verify(roomRepository).save(firstRoom);
-            verify(notificationService).sendCancellationConfirmation(futureBooking);
-        }
+                boolean result = bookingSystem.cancelBooking(FUTURE_BOOKING_ID);
 
-        @ParameterizedTest
-        @MethodSource("multipleBookingsInDifferentRooms")
-        @DisplayName("Avbokning påverkar endast specifikt rum")
-        void cancelBooking_CancelsOnlySpecificBooking(
-                String bookingIdToCancel,
-                String expectedRoomId) {
+                assertThat(result).isTrue();
+                verify(roomRepository).save(firstRoom);
+                verify(notificationService).sendCancellationConfirmation(futureBooking);
+            }
 
-            Booking booking1 = new Booking(FUTURE_BOOKING_ID, ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
-            Booking booking2 = new Booking(ONGOING_BOOKING_ID, SECOND_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
-            Booking booking3 = new Booking(OTHER_BOOKING_ID, THIRD_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+            @ParameterizedTest
+            @MethodSource("multipleBookingsInDifferentRooms")
+            @DisplayName("Avbokning påverkar endast specifikt rum")
+            void cancelBooking_CancelsOnlySpecificBooking (
+                    String bookingIdToCancel,
+                    String expectedRoomId){
 
-            firstRoom.addBooking(booking1);
-            secondRoom.addBooking(booking2);
-            thirdRoom.addBooking(booking3);
+                Booking booking1 = new Booking(FUTURE_BOOKING_ID, ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+                Booking booking2 = new Booking(ONGOING_BOOKING_ID, SECOND_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
+                Booking booking3 = new Booking(OTHER_BOOKING_ID, THIRD_ROOM_ID, FUTURE_START_TIME, FUTURE_END_TIME);
 
-            List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
-            when(roomRepository.findAll()).thenReturn(allRooms);
+                firstRoom.addBooking(booking1);
+                secondRoom.addBooking(booking2);
+                thirdRoom.addBooking(booking3);
 
-            boolean result = bookingSystem.cancelBooking(bookingIdToCancel);
+                List<Room> allRooms = List.of(firstRoom, secondRoom, thirdRoom);
+                when(roomRepository.findAll()).thenReturn(allRooms);
 
-            assertThat(result).isTrue();
+                boolean result = bookingSystem.cancelBooking(bookingIdToCancel);
 
-            Room expectedRoom = expectedRoomId.equals(ROOM_ID) ? firstRoom :
-                    expectedRoomId.equals(SECOND_ROOM_ID) ? secondRoom : thirdRoom;
+                assertThat(result).isTrue();
 
-            verify(roomRepository).save(expectedRoom);
+                Room expectedRoom = expectedRoomId.equals(ROOM_ID) ? firstRoom :
+                        expectedRoomId.equals(SECOND_ROOM_ID) ? secondRoom : thirdRoom;
 
-            if (expectedRoom == firstRoom) {
-                verify(roomRepository, never()).save(secondRoom);
-                verify(roomRepository, never()).save(thirdRoom);
-            } else if (expectedRoom == secondRoom) {
-                verify(roomRepository, never()).save(firstRoom);
-                verify(roomRepository, never()).save(thirdRoom);
-            } else {
-                verify(roomRepository, never()).save(firstRoom);
-                verify(roomRepository, never()).save(secondRoom);
+                verify(roomRepository).save(expectedRoom);
+
+                if (expectedRoom == firstRoom) {
+                    verify(roomRepository, never()).save(secondRoom);
+                    verify(roomRepository, never()).save(thirdRoom);
+                } else if (expectedRoom == secondRoom) {
+                    verify(roomRepository, never()).save(firstRoom);
+                    verify(roomRepository, never()).save(thirdRoom);
+                } else {
+                    verify(roomRepository, never()).save(firstRoom);
+                    verify(roomRepository, never()).save(secondRoom);
+                }
+            }
+
+            static Stream<Arguments> multipleBookingsInDifferentRooms() {
+                return Stream.of(
+                        Arguments.of(FUTURE_BOOKING_ID, ROOM_ID),
+                        Arguments.of(ONGOING_BOOKING_ID, SECOND_ROOM_ID),
+                        Arguments.of(OTHER_BOOKING_ID, THIRD_ROOM_ID)
+                );
             }
         }
-
-        static Stream<Arguments> multipleBookingsInDifferentRooms() {
-            return Stream.of(
-                    Arguments.of(FUTURE_BOOKING_ID, ROOM_ID),
-                    Arguments.of(ONGOING_BOOKING_ID, SECOND_ROOM_ID),
-                    Arguments.of(OTHER_BOOKING_ID, THIRD_ROOM_ID)
-            );
-        }
     }
-}
