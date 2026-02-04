@@ -74,4 +74,51 @@ class CartItemTest {
             assertEquals("Amount must be positive", exception.getMessage());
         }
     }
+
+    @Nested
+    class RemoveQuantity {
+
+        @Test
+        void removeQuantity_reducesQuantity() {
+            CartItem item = new CartItem(cpu, 5);
+            item.removeQuantity(2);
+            assertEquals(3, item.getQuantity());
+        }
+
+        @Test
+        void removeQuantity_toZero() {
+            CartItem item = new CartItem(cpu, 3);
+            item.removeQuantity(3);
+            assertEquals(0, item.getQuantity());
+            assertTrue(item.isEmpty());
+        }
+
+        @Test
+        void removeQuantity_exceedQuantity_setsZero() {
+            CartItem item = new CartItem(cpu, 2);
+            item.removeQuantity(5);
+            assertEquals(0, item.getQuantity());
+            assertTrue(item.isEmpty());
+        }
+
+        @Test
+        void removeQuantity_negative_throws() {
+            CartItem item = new CartItem(cpu, 3);
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> item.removeQuantity(-2)
+            );
+            assertEquals("Amount must be positive", exception.getMessage());
+        }
+
+        @Test
+        void removeQuantity_zero_throws() {
+            CartItem item = new CartItem(cpu, 3);
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> item.removeQuantity(0)
+            );
+            assertEquals("Amount must be positive", exception.getMessage());
+        }
+    }
 }
