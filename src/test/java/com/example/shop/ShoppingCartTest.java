@@ -88,6 +88,4 @@ class ShoppingCartTest {
         Collection<CartItem> items = cart.getItems();
         assertThrows(UnsupportedOperationException.class, () -> items.clear());
     }
-
-
 }
