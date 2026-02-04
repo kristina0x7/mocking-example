@@ -28,4 +28,11 @@ class ShoppingCartTest {
         cart.addProduct(cpu, 2);
         assertEquals(2, cart.getItemCount());
     }
+
+    @Test
+    void removeProduct_reducesQuantity() {
+        cart.addProduct(cpu, 5);
+        cart.removeProduct(cpu.getId(), 2);
+        assertEquals(3, cart.getQuantity(cpu.getId()));
+    }
 }
