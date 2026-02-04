@@ -35,4 +35,13 @@ class ShoppingCartTest {
         cart.removeProduct(cpu.getId(), 2);
         assertEquals(3, cart.getQuantity(cpu.getId()));
     }
+
+    @Test
+    void getTotalPrice_withFixedDiscount() {
+        cart.addProduct(cpu, 2);
+        cart.addProduct(ram, 3);
+        FixedDiscount discount = new FixedDiscount(3000);
+        cart.setDiscount(discount);
+        assertEquals(17300.0, cart.getTotalPrice(), 0.001);
+    }
 }
