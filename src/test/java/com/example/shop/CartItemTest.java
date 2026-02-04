@@ -121,4 +121,31 @@ class CartItemTest {
             assertEquals("Amount must be positive", exception.getMessage());
         }
     }
+
+    @Nested
+    class getTotalPrice {
+
+        @Test
+        void getTotalPrice_calculatesCorrectly() {
+            CartItem item = new CartItem(cpu, 4);
+            assertEquals(3700.0 * 4, item.getTotalPrice(), 0.001);
+        }
+    }
+
+    @Nested
+    class isEmpty {
+
+        @Test
+        void isEmpty_returnsTrueWhenQuantityZero() {
+            CartItem item = new CartItem(cpu, 1);
+            item.removeQuantity(1);
+            assertTrue(item.isEmpty());
+        }
+
+        @Test
+        void isEmpty_returnsFalseWhenQuantityPositive() {
+            CartItem item = new CartItem(cpu, 2);
+            assertFalse(item.isEmpty());
+        }
+    }
 }
