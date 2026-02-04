@@ -1,6 +1,7 @@
 package com.example.shop;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
@@ -86,5 +87,70 @@ class ShoppingCartTest {
         cart.addProduct(cpu, 1);
         Collection<CartItem> items = cart.getItems();
         assertThrows(UnsupportedOperationException.class, () -> items.clear());
+    }
+
+
+    @Nested
+    class Validation {
+
+        @Test
+        void addProduct_nullProduct_throws() {
+            NullPointerException exception = assertThrows(
+                    NullPointerException.class,
+                    () -> cart.addProduct(null, 1)
+            );
+            assertEquals("Product cannot be null", exception.getMessage());
+        }
+
+        @Test
+        void addProduct_negativeQuantity_throws() {
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> cart.addProduct(cpu, -1)
+            );
+            assertEquals("Quantity must be positive", exception.getMessage());
+        }
+
+        @Test
+        void addProduct_zeroQuantity_throws() {
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> cart.addProduct(cpu, 0)
+            );
+            assertEquals("Quantity must be positive", exception.getMessage());
+        }
+
+        @Test
+        void removeProduct_negativeQuantity_throws() {
+            cart.addProduct(cpu, 2);
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> cart.removeProduct(cpu.getId(), -1)
+            );
+            assertEquals("Quantity must be positive", exception.getMessage());
+        }
+
+        @Test
+        void removeProduct_zeroQuantity_throws() {
+            cart.addProduct(cpu, 2);
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> cart.removeProduct(cpu.getId(), 0)
+            );
+            assertEquals("Quantity must be positive", exception.getMessage());
+        }
+
+        @Test
+        void removeProduct_productNotInCart_throwsCartException() {
+            assertFalse(cart.containsProduct(ram.getId()));
+            CartException exception = assertThrows(
+                    CartException.class,
+                    () -> cart.removeProduct(ram.getId(), 1)
+            );
+            assertEquals(
+                    "Product not found in cart: " + ram.getId(),
+                    exception.getMessage()
+            );
+        }
     }
 }
