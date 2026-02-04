@@ -53,4 +53,10 @@ class ShoppingCartTest {
         cart.setDiscount(discount);
         assertEquals(18270.0, cart.getTotalPrice(), 0.001);
     }
+
+    @Test
+    void containsProduct_returnsTrueIfPresent() {
+        cart.addProduct(cpu, 1);
+        assertTrue(cart.containsProduct(cpu.getId()));
+    }
 }
