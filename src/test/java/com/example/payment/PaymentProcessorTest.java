@@ -20,22 +20,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PaymentProcessorTest {
 
-    @Mock
-    private PaymentApiClient paymentApiClient;
-    @Mock
-    private PaymentRepository paymentRepository;
-    @Mock
-    private EmailSender emailSender;
-    @InjectMocks
-    private PaymentProcessor paymentProcessor;
-    @Captor
-    private ArgumentCaptor<String> emailCaptor;
-    @Captor
-    private ArgumentCaptor<Double> amountCaptor;
-    @Captor
-    private ArgumentCaptor<PaymentStatus> statusCaptor;
-    @Captor
-    private ArgumentCaptor<String> transactionIdCaptor;
+    @Mock private PaymentApiClient paymentApiClient;
+    @Mock private PaymentRepository paymentRepository;
+    @Mock private EmailSender emailSender;
+    @InjectMocks private PaymentProcessor paymentProcessor;
+    @Captor private ArgumentCaptor<String> emailCaptor;
+    @Captor private ArgumentCaptor<Double> amountCaptor;
+    @Captor private ArgumentCaptor<PaymentStatus> statusCaptor;
+    @Captor private ArgumentCaptor<String> transactionIdCaptor;
 
     private static final String VALID_EMAIL = "name@example.com";
     private static final double VALID_AMOUNT = 100.50;

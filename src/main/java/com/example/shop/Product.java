@@ -18,15 +18,9 @@ public class Product {
 
     public Product(String name, double price) {this(UUID.randomUUID(), name, price);}
 
-    public UUID getId() {
-        return id;
-    }
-    public String getName() {
-        return name;
-    }
-    public double getPrice() {
-        return price;
-    }
+    public UUID getId() {return id;}
+    public String getName() {return name;}
+    public double getPrice() {return price;}
 
     @Override
     public boolean equals(Object o) {
