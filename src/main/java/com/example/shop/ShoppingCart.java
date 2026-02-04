@@ -1,8 +1,6 @@
 package com.example.shop;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class ShoppingCart {
     private final Map<UUID, CartItem> items = new HashMap<>();
@@ -63,5 +61,9 @@ public class ShoppingCart {
     public void clear() {
         items.clear();
         discount = null;
+    }
+
+    public Collection<CartItem> getItems() {
+        return Collections.unmodifiableCollection(items.values());
     }
 }
