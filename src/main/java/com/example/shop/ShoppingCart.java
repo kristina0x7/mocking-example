@@ -23,4 +23,19 @@ public class ShoppingCart {
                 .mapToInt(CartItem::getQuantity)
                 .sum();
     }
+
+    public int getQuantity(UUID productId) {
+        CartItem item = items.get(productId);
+        return item != null ? item.getQuantity() : 0;
+    }
+
+    public void removeProduct(UUID productId, int quantity) {
+        CartItem item = items.get(productId);
+        if (item == null) throw new CartException("Product not found in cart: " + productId);
+        if (quantity >= item.getQuantity()) {
+            items.remove(productId);
+        } else {
+            item.removeQuantity(quantity);
+        }
+    }
 }
