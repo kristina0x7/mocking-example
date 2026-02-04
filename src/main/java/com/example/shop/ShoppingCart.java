@@ -40,15 +40,15 @@ public class ShoppingCart {
         }
     }
 
-    public void setDiscount(Discount discount) {
-        this.discount = discount;
-    }
-
     public double getTotalPrice() {
         double total = items.values().stream()
                 .mapToDouble(CartItem::getTotalPrice)
                 .sum();
         if (discount != null) total = discount.apply(total);
         return total;
+    }
+
+    public void setDiscount(Discount discount) {
+        this.discount = discount;
     }
 }

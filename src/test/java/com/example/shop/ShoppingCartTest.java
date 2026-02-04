@@ -44,4 +44,13 @@ class ShoppingCartTest {
         cart.setDiscount(discount);
         assertEquals(17300.0, cart.getTotalPrice(), 0.001);
     }
+
+    @Test
+    void percentageDiscount_getTotalPrice() {
+        cart.addProduct(cpu, 2);
+        cart.addProduct(ram, 3);
+        PercentageDiscount discount = new PercentageDiscount(10);
+        cart.setDiscount(discount);
+        assertEquals(18270.0, cart.getTotalPrice(), 0.001);
+    }
 }
