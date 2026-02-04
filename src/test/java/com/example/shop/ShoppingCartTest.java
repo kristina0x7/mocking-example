@@ -7,7 +7,6 @@ import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 class ShoppingCartTest {
     private ShoppingCart cart;
     private Product cpu;
