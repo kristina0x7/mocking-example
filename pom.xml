@@ -92,11 +92,19 @@
                 <configuration>
                     <targetClasses>
                         <param>com.example.payment.PaymentProcessor</param>
+                        <param>com.example.shop.Product</param>
+                        <param>com.example.shop.CartItem</param>
+                        <param>com.example.shop.FixedDiscount</param>
+                        <param>com.example.shop.PercentageDiscount</param>
                         <param>com.example.shop.ShoppingCart</param>
                         <param>com.example.BookingSystem</param>
                     </targetClasses>
                     <targetTests>
                         <param>com.example.payment.PaymentProcessorTest</param>
+                        <param>com.example.shop.ProductTest</param>
+                        <param>com.example.shop.CartItemTest</param>
+                        <param>com.example.shop.FixedDiscountTest</param>
+                        <param>com.example.shop.PercentageDiscountTest</param>
                         <param>com.example.shop.ShoppingCartTest</param>
                         <param>com.example.BookingSystemTest</param>
                     </targetTests>
