@@ -11,6 +11,8 @@ public class ShoppingCart {
     }
 
     public void addProduct(Product product, int quantity) {
+        Objects.requireNonNull(product, "Product cannot be null");
+        if (quantity <= 0) throw new IllegalArgumentException("Quantity must be positive");
         items.merge(product.getId(), new CartItem(product, quantity), (old, ne) -> {
             old.addQuantity(quantity);
             return old;
@@ -29,6 +31,7 @@ public class ShoppingCart {
     }
 
     public void removeProduct(UUID productId, int quantity) {
+        if (quantity <= 0) throw new IllegalArgumentException("Quantity must be positive");
         CartItem item = items.get(productId);
         if (item == null) throw new CartException("Product not found in cart: " + productId);
         if (quantity >= item.getQuantity()) {
