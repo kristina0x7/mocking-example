@@ -1,11 +1,14 @@
 package com.example.shop;
 
+import java.util.Objects;
+
 public class CartItem {
     private final Product product;
     private int quantity;
 
     public CartItem(Product product, int quantity) {
-        this.product = product;
+        this.product = Objects.requireNonNull(product, "Product cannot be null");
+        if (quantity <= 0) throw new IllegalArgumentException("Quantity must be positive");
         this.quantity = quantity;
     }
 

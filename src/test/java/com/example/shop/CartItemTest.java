@@ -3,6 +3,7 @@ package com.example.shop;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 class CartItemTest {
     private Product cpu;
@@ -17,8 +18,8 @@ class CartItemTest {
 
         @Test
         void constructor_nullProduct_throws() {
-            IllegalArgumentException exception = assertThrows(
-                    IllegalArgumentException.class,
+            NullPointerException exception = assertThrows(
+                    NullPointerException.class,
                     () -> new CartItem(null, 1)
             );
             assertEquals("Product cannot be null", exception.getMessage());
