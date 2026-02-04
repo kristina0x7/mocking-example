@@ -51,4 +51,8 @@ public class ShoppingCart {
     public void setDiscount(Discount discount) {
         this.discount = discount;
     }
+
+    public boolean containsProduct(UUID productId) {
+        return items.containsKey(productId);
+    }
 }
