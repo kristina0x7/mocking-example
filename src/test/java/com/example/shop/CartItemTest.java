@@ -31,7 +31,7 @@ class CartItemTest {
                     IllegalArgumentException.class,
                     () -> new CartItem(cpu, -5)
             );
-            assertEquals("Quantity must be positive", exception.getMessage());
+            assertEquals("CartItem quantity must be positive", exception.getMessage());
         }
 
         @Test
@@ -40,7 +40,7 @@ class CartItemTest {
                     IllegalArgumentException.class,
                     () -> new CartItem(cpu, 0)
             );
-            assertEquals("Quantity must be positive", exception.getMessage());
+            assertEquals("CartItem quantity must be positive", exception.getMessage());
         }
     }
 

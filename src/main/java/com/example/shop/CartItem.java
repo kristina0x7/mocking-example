@@ -8,7 +8,7 @@ public class CartItem {
 
     public CartItem(Product product, int quantity) {
         this.product = Objects.requireNonNull(product, "Product cannot be null");
-        if (quantity <= 0) throw new IllegalArgumentException("Quantity must be positive");
+        if (quantity <= 0) throw new IllegalArgumentException("CartItem quantity must be positive");
         this.quantity = quantity;
     }
 

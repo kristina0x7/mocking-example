@@ -202,7 +202,7 @@ class PaymentProcessorTest {
         void apiThrows_BubblesUp() throws PaymentProcessingException {
             PaymentProcessingException apiEx = new PaymentProcessingException("API failed");
             when(paymentApiClient.charge(VALID_AMOUNT)).thenThrow(apiEx);
-            assertThatThrownBy(() -> pay()).isSameAs(apiEx);
+            assertThatThrownBy(() -> pay()).isInstanceOf(PaymentProcessingException.class).hasMessage("API failed");
             verifyNoInteractions(paymentRepository, emailSender);
         }
     }

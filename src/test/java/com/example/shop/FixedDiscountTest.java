@@ -16,6 +16,12 @@ class FixedDiscountTest {
     }
 
     @Test
+    void constructor_zeroAmount_allows() {
+        FixedDiscount discount = new FixedDiscount(0);
+        double original = 100.0;
+        assertEquals(100.0, discount.apply(original), 0.001);
+    }
+    @Test
     void apply_reducesPriceCorrectly() {
         FixedDiscount discount = new FixedDiscount(300);
         double original = 2000.0;
