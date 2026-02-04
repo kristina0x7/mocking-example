@@ -37,7 +37,7 @@ class ShoppingCartTest {
     }
 
     @Test
-    void getTotalPrice_withFixedDiscount() {
+    void fixedDiscount_getTotalPrice() {
         cart.addProduct(cpu, 2);
         cart.addProduct(ram, 3);
         FixedDiscount discount = new FixedDiscount(3000);

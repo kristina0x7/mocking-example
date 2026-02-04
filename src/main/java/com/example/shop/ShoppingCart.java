@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public class ShoppingCart {
     private final Map<UUID, CartItem> items = new HashMap<>();
+    private Discount discount;
 
     public boolean isEmpty() {
         return items.isEmpty();
@@ -37,5 +38,17 @@ public class ShoppingCart {
         } else {
             item.removeQuantity(quantity);
         }
+    }
+
+    public void setDiscount(Discount discount) {
+        this.discount = discount;
+    }
+
+    public double getTotalPrice() {
+        double total = items.values().stream()
+                .mapToDouble(CartItem::getTotalPrice)
+                .sum();
+        if (discount != null) total = discount.apply(total);
+        return total;
     }
 }

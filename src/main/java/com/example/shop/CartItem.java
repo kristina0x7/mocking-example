@@ -14,4 +14,8 @@ public class CartItem {
     public void addQuantity(int amount) { quantity += amount; }
     public void removeQuantity(int amount) { quantity -= amount; }
     public boolean isEmpty() { return quantity <= 0; }
+
+    public double getTotalPrice() {
+        return product.getPrice() * quantity;
+    }
 }
