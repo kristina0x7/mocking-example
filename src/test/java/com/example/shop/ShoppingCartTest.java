@@ -3,8 +3,7 @@ package com.example.shop;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 class ShoppingCartTest {
@@ -58,5 +57,16 @@ class ShoppingCartTest {
     void containsProduct_returnsTrueIfPresent() {
         cart.addProduct(cpu, 1);
         assertTrue(cart.containsProduct(cpu.getId()));
+    }
+
+    @Test
+    void clear_shouldEmptyCart() {
+        cart.addProduct(cpu, 2);
+        cart.addProduct(ram, 1);
+        cart.setDiscount(new FixedDiscount(100));
+        cart.clear();
+        assertTrue(cart.isEmpty());
+        assertEquals(0, cart.getItemCount());
+        assertNull(cart.getDiscount());
     }
 }
