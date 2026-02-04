@@ -20,14 +20,22 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PaymentProcessorTest {
 
-    @Mock private PaymentApiClient paymentApiClient;
-    @Mock private PaymentRepository paymentRepository;
-    @Mock private EmailSender emailSender;
-    @InjectMocks private PaymentProcessor paymentProcessor;
-    @Captor private ArgumentCaptor<String> emailCaptor;
-    @Captor private ArgumentCaptor<Double> amountCaptor;
-    @Captor private ArgumentCaptor<PaymentStatus> statusCaptor;
-    @Captor private ArgumentCaptor<String> transactionIdCaptor;
+    @Mock
+    private PaymentApiClient paymentApiClient;
+    @Mock
+    private PaymentRepository paymentRepository;
+    @Mock
+    private EmailSender emailSender;
+    @InjectMocks
+    private PaymentProcessor paymentProcessor;
+    @Captor
+    private ArgumentCaptor<String> emailCaptor;
+    @Captor
+    private ArgumentCaptor<Double> amountCaptor;
+    @Captor
+    private ArgumentCaptor<PaymentStatus> statusCaptor;
+    @Captor
+    private ArgumentCaptor<String> transactionIdCaptor;
 
     private static final String VALID_EMAIL = "name@example.com";
     private static final double VALID_AMOUNT = 100.50;
@@ -85,7 +93,6 @@ class PaymentProcessorTest {
                     .hasMessageContaining("emailSender cannot be null");
         }
     }
-
 
 
     @Nested
@@ -172,38 +179,38 @@ class PaymentProcessorTest {
             verify(paymentRepository, never()).savePayment(anyDouble(), any(), anyString());
             verify(emailSender, never()).sendPaymentConfirmation(anyString(), anyDouble());
         }
-    }
 
 
-    @Nested
-    class ProcessPaymentExceptions {
+        @Nested
+        class ProcessPaymentExceptions {
 
-        @Test
-        void repositoryThrows_ThrowsPaymentProcessingException() throws Exception {
-            stubSuccessfulPayment();
-            PaymentDataAccessException repoEx = new PaymentDataAccessException("DB error");
-            doThrow(repoEx).when(paymentRepository).savePayment(VALID_AMOUNT, PaymentStatus.COMPLETED, VALID_TRANSACTION_ID);
-            assertThatThrownBy(() -> pay())
-                    .isInstanceOf(PaymentProcessingException.class)
-                    .hasMessage("Failed to save payment")
-                    .hasCause(repoEx);
-            verify(emailSender, never()).sendPaymentConfirmation(anyString(), anyDouble());
-        }
+            @Test
+            void repositoryThrows_paymentProcessingException() throws Exception {
+                stubSuccessfulPayment();
+                PaymentDataAccessException repoEx = new PaymentDataAccessException("DB error");
+                doThrow(repoEx).when(paymentRepository).savePayment(VALID_AMOUNT, PaymentStatus.COMPLETED, VALID_TRANSACTION_ID);
+                assertThatThrownBy(() -> pay())
+                        .isInstanceOf(PaymentProcessingException.class)
+                        .hasMessage("Failed to save payment")
+                        .hasCause(repoEx);
+                verify(emailSender, never()).sendPaymentConfirmation(anyString(), anyDouble());
+            }
 
-        @Test
-        void emailThrows_PaymentStillSuccessful() throws Exception {
-            stubSuccessfulPayment();
-            doThrow(new EmailSendingException("error")).when(emailSender).sendPaymentConfirmation(VALID_EMAIL, VALID_AMOUNT);
-            assertThat(pay()).isTrue();
-            verifyPaymentSaved();
-        }
+            @Test
+            void emailThrows_paymentStillSuccessful() throws Exception {
+                stubSuccessfulPayment();
+                doThrow(new EmailSendingException("error")).when(emailSender).sendPaymentConfirmation(VALID_EMAIL, VALID_AMOUNT);
+                assertThat(pay()).isTrue();
+                verifyPaymentSaved();
+            }
 
-        @Test
-        void apiThrows_BubblesUp() throws PaymentProcessingException {
-            PaymentProcessingException apiEx = new PaymentProcessingException("API failed");
-            when(paymentApiClient.charge(VALID_AMOUNT)).thenThrow(apiEx);
-            assertThatThrownBy(() -> pay()).isInstanceOf(PaymentProcessingException.class).hasMessage("API failed");
-            verifyNoInteractions(paymentRepository, emailSender);
+            @Test
+            void apiThrows_bubblesUp() throws PaymentProcessingException {
+                PaymentProcessingException apiEx = new PaymentProcessingException("API failed");
+                when(paymentApiClient.charge(VALID_AMOUNT)).thenThrow(apiEx);
+                assertThatThrownBy(() -> pay()).isInstanceOf(PaymentProcessingException.class).hasMessage("API failed");
+                verifyNoInteractions(paymentRepository, emailSender);
+            }
         }
     }
 }
