@@ -72,6 +72,7 @@ class ShoppingCartTest {
         assertNull(cart.getDiscount());
     }
 
+    @Test
     void getItems_shouldReturnAllItems() {
         cart.addProduct(cpu, 2);
         cart.addProduct(ram, 1);
@@ -80,4 +81,13 @@ class ShoppingCartTest {
         assertTrue(items.stream().anyMatch(item -> item.getProduct().equals(cpu)));
         assertTrue(items.stream().anyMatch(item -> item.getProduct().equals(ram)));
     }
+
+    @Test
+    void getItems_shouldReturnUnmodifiableCollection() {
+        cart.addProduct(cpu, 1);
+        Collection<CartItem> items = cart.getItems();
+        assertThrows(UnsupportedOperationException.class, () -> items.clear());
+    }
+
+
 }
