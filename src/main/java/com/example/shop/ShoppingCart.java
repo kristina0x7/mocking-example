@@ -55,4 +55,9 @@ public class ShoppingCart {
     public boolean containsProduct(UUID productId) {
         return items.containsKey(productId);
     }
+
+    public void clear() {
+        items.clear();
+        discount = null;
+    }
 }
